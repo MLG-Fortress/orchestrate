@@ -29,7 +29,7 @@ The script will:
 
 1. Fetch remote branches from this orchestrate repository.
 2. For each non-default branch, find metadata for target repo.
-3. Clone (or reuse) target repo in `~/buildupdates/<repo>`.
+3. Clone (or reuse) target repo in `~/orchestrateupdates/<repo>`.
 4. Pull target default branch with rebase.
 5. Apply mail patches with `git am`.
 6. Push updates to target repository default branch.

@@ -2,7 +2,7 @@
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-TARGET_ROOT="${HOME}/buildupdates"
+TARGET_ROOT="${HOME}/orchestrateupdates"
 
 mkdir -p "${TARGET_ROOT}"
 cd "${REPO_ROOT}"
