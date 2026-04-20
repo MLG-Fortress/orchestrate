@@ -18,7 +18,6 @@ Managed repos in this sample:
 Configuration + automation:
 - [`orchestrate.yaml`](orchestrate.yaml)
 - [`scripts/orchestrate.sh`](scripts/orchestrate.sh)
-- [`scripts/update-crystalspace.sh`](scripts/update-crystalspace.sh)
 
 ## Quick start (access available)
 
@@ -29,8 +28,7 @@ Configuration + automation:
 # branch everywhere
 ./scripts/orchestrate.sh branch feat/shared-change
 
-# crystal-space dependency bump (Paper or Purpur auto-detected)
-./scripts/orchestrate.sh update-crystalspace repos/crystal-space
+# make edits in one or more hydrated repos
 
 # commit changed repos
 ./scripts/orchestrate.sh commit "feat: shared change"
@@ -48,7 +46,6 @@ Configuration + automation:
 
 ./scripts/orchestrate.sh hydrate
 ./scripts/orchestrate.sh branch feat/offline-change
-./scripts/orchestrate.sh update-crystalspace repos/crystal-space
 ./scripts/orchestrate.sh commit "feat: offline change"
 
 # export handoff patch files for someone with upstream access
@@ -58,13 +55,3 @@ Configuration + automation:
 Handoff output:
 - `handoff/<repo>.patch`
 - `handoff/<repo>.md` (apply instructions)
-
-## Crystal-space updater policy
-
-`update-crystalspace` scans all `pom.xml` files and:
-- if Paper: sets `io.papermc.paper:paper-api` to `<version>[26.1.2.build,)</version>`
-- if Purpur: sets `org.purpurmc.purpur:purpur-api` to `26.1.2.build.2570-experimental`
-- ensures required repositories exist:
-  - `https://repo.papermc.io/repository/maven-public/`
-  - `https://repo.purpurmc.org/snapshots`
-- runs `mvn -DskipTests compile` when root `pom.xml` exists

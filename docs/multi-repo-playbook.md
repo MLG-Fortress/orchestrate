@@ -10,7 +10,6 @@ Do full multi-repo work from one control repo, even when direct upstream access 
 orchestrate/
   orchestrate.yaml
   scripts/orchestrate.sh
-  scripts/update-crystalspace.sh
   imports/                  # optional *.tar.gz snapshots when clone access unavailable
   repos/
     maxi-world/
@@ -23,7 +22,6 @@ orchestrate/
 ```bash
 ./scripts/orchestrate.sh hydrate
 ./scripts/orchestrate.sh branch feat/player-xp-rework
-./scripts/orchestrate.sh update-crystalspace repos/crystal-space
 ./scripts/orchestrate.sh commit "feat: xp rework"
 ./scripts/orchestrate.sh pr "feat: xp rework"
 ```
@@ -39,7 +37,6 @@ orchestrate/
 ```bash
 ./scripts/orchestrate.sh hydrate
 ./scripts/orchestrate.sh branch feat/offline-rebalance
-./scripts/orchestrate.sh update-crystalspace repos/crystal-space
 ./scripts/orchestrate.sh commit "feat: offline rebalance"
 ./scripts/orchestrate.sh handoff handoff
 ```
@@ -53,6 +50,6 @@ git am < handoff/crystal-space.patch   # or git apply if raw diff mode
 
 ## Why this solves access gaps
 
-- Agent can still do edits, dependency updates, and compile checks in this repo environment.
+- Agent can still do edits and validations in this repo environment.
 - Generated handoff patch is portable to any upstream clone.
 - Upstream repos stay independent; no monorepo conversion required.
