@@ -64,6 +64,10 @@ for branch in "${REMOTE_BRANCHES[@]}"; do
     git -C "${clone_path}" checkout "${source_default_branch}"
     git -C "${clone_path}" pull -r origin "${source_default_branch}"
 
+    # Ensure stale interrupted am/rebase state never blocks a new run.
+    git -C "${clone_path}" am --abort >/dev/null 2>&1 || true
+    rm -rf "${clone_path}/.git/rebase-apply" "${clone_path}/.git/rebase-merge" >/dev/null 2>&1 || true
+
     if [[ -n "${patch_dir_rel}" ]]; then
       patch_dir_abs="${worktree_dir}/${patch_dir_rel}"
     else
@@ -79,11 +83,41 @@ for branch in "${REMOTE_BRANCHES[@]}"; do
       continue
     fi
 
-    echo "Applying ${#patches[@]} patch(es) to ${source_repo}:${source_default_branch}"
-    git -C "${clone_path}" am "${patches[@]}"
-    git -C "${clone_path}" push origin "${source_default_branch}"
+    echo "Evaluating ${#patches[@]} patch(es) for ${source_repo}:${source_default_branch}"
+    start_head="$(git -C "${clone_path}" rev-parse HEAD)"
 
-    echo "Metadata ${metadata_path} applied and pushed for ${source_repo}."
+    applied_count=0
+    skipped_count=0
+
+    for patch in "${patches[@]}"; do
+      if git -C "${clone_path}" apply --check "${patch}" >/dev/null 2>&1; then
+        echo "Applying $(basename "${patch}")"
+        if git -C "${clone_path}" am --3way "${patch}"; then
+          ((applied_count+=1))
+        else
+          echo "Failed while applying $(basename "${patch}"). Aborting am session."
+          git -C "${clone_path}" am --abort >/dev/null 2>&1 || true
+          exit 1
+        fi
+      elif git -C "${clone_path}" apply --reverse --check "${patch}" >/dev/null 2>&1; then
+        echo "Skipping already-applied patch $(basename "${patch}")"
+        ((skipped_count+=1))
+      else
+        echo "Patch $(basename "${patch}") does not apply cleanly and is not already applied."
+        echo "Leaving repo unchanged for manual inspection."
+        exit 1
+      fi
+    done
+
+    end_head="$(git -C "${clone_path}" rev-parse HEAD)"
+    echo "Applied: ${applied_count}, skipped: ${skipped_count}"
+
+    if [[ "${start_head}" != "${end_head}" ]]; then
+      git -C "${clone_path}" push origin "${source_default_branch}"
+      echo "Metadata ${metadata_path} applied and pushed for ${source_repo}."
+    else
+      echo "No new commits created for ${source_repo}; skipping push."
+    fi
   done
 
   cleanup
