@@ -1,0 +1,95 @@
+From 0adb5eff31c31fd2bd7956cdc4351bec0bd209b8 Mon Sep 17 00:00:00 2001
+From: Codex <codex@openai.com>
+Date: Mon, 20 Apr 2026 20:21:00 +0000
+Subject: [PATCH] build: move to paper api range 26.1.2 and modernize maven
+ config
+
+---
+ pom.xml | 46 +++++++++++++++-------------------------------
+ 1 file changed, 15 insertions(+), 31 deletions(-)
+
+diff --git a/pom.xml b/pom.xml
+index 21fc36c..a268459 100644
+--- a/pom.xml
++++ b/pom.xml
+@@ -26,33 +26,27 @@
+ 
+     <dependencies>
+         <dependency>
+-            <groupId>org.spigotmc</groupId>
+-            <artifactId>spigot-api</artifactId>
+-            <version>1.10-R0.1-SNAPSHOT</version>
+-        </dependency>
+-        <dependency>
+-            <groupId>org.bukkit</groupId>
+-            <artifactId>bukkit</artifactId>
+-            <version>1.10-R0.1-SNAPSHOT</version>
+-            <type>jar</type>
++            <groupId>io.papermc.paper</groupId>
++            <artifactId>paper-api</artifactId>
++            <version>[26.1.2.build,)</version>
+             <scope>provided</scope>
+         </dependency>
+         <dependency>
+-            <groupId>org.mcstats.bukkit</groupId>
+-            <artifactId>metrics-lite</artifactId>
+-            <version>R8-SNAPSHOT</version>
+-            <scope>compile</scope>
++            <groupId>org.spigotmc</groupId>
++            <artifactId>spigot-api</artifactId>
++            <version>1.12.2-R0.1-SNAPSHOT</version>
++            <scope>provided</scope>
+         </dependency>
+     </dependencies>
+ 
+     <repositories>
+         <repository>
+-            <id>spigot-repo</id>
+-            <url>https://hub.spigotmc.org/nexus/content/groups/public/</url>
++            <id>papermc</id>
++            <url>https://repo.papermc.io/repository/maven-public/</url>
+         </repository>
+         <repository>
+-            <id>Plugin Metrics</id>
+-            <url>http://repo.mcstats.org/content/repositories/public</url>
++            <id>spigot-repo</id>
++            <url>https://hub.spigotmc.org/nexus/content/repositories/snapshots/</url>
+         </repository>
+     </repositories>
+ 
+@@ -71,10 +65,10 @@
+             <plugin>
+                 <groupId>org.apache.maven.plugins</groupId>
+                 <artifactId>maven-compiler-plugin</artifactId>
+-                <version>3.5.1</version>
++                <version>3.14.1</version>
+                 <configuration>
+-                    <source>1.7</source>
+-                    <target>1.7</target>
++                    <source>8</source>
++                    <target>8</target>
+                 </configuration>
+             </plugin>
+             <plugin>
+@@ -82,17 +76,7 @@
+                 <artifactId>maven-shade-plugin</artifactId>
+                 <version>3.2.1</version>
+                 <configuration>
+-                    <artifactSet>
+-                        <includes>
+-                            <include>org.mcstats.*:*</include>
+-                        </includes>
+-                    </artifactSet>
+-                    <relocations>
+-                        <relocation>
+-                            <pattern>org.mcstats</pattern>
+-                            <shadedPattern>com.crystalcraftmc.crystalspace</shadedPattern>
+-                        </relocation>
+-                    </relocations>
++                    <createDependencyReducedPom>false</createDependencyReducedPom>
+                 </configuration>
+                 <executions>
+                     <execution>
+-- 
+2.43.0
+

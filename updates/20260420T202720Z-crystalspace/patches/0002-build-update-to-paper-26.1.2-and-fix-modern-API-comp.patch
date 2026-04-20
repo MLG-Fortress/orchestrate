@@ -1,0 +1,486 @@
+From b7feccefb5285d00428281bdd41528e1ea26430c Mon Sep 17 00:00:00 2001
+From: Codex <codex@openai.com>
+Date: Mon, 20 Apr 2026 20:27:15 +0000
+Subject: [PATCH 2/2] build: update to paper 26.1.2 and fix modern API compile
+ failures
+
+---
+ .../crystalspace/api/SpacePlayerHandler.java  |  13 +-
+ .../api/schematic/SpaceSchematicHandler.java  |   4 +-
+ .../misc/BlackHolePlayerListener.java         |   8 +-
+ .../crystalspace/util/LegacyMaterials.java    |  27 ++++
+ .../wgen/planets/PlanetsChunkGenerator.java   | 126 ++----------------
+ .../populators/SpaceAsteroidPopulator.java    |  20 +--
+ .../populators/SpaceBlackHolePopulator.java   |   5 +-
+ .../wgen/populators/SpaceDataPopulator.java   |   2 +-
+ .../wgen/populators/SpaceEffectPopulator.java |   2 +-
+ .../populators/SpaceSatellitePopulator.java   |   4 +-
+ 10 files changed, 66 insertions(+), 145 deletions(-)
+ create mode 100644 src/main/java/com/crystalcraftmc/crystalspace/util/LegacyMaterials.java
+
+diff --git a/src/main/java/com/crystalcraftmc/crystalspace/api/SpacePlayerHandler.java b/src/main/java/com/crystalcraftmc/crystalspace/api/SpacePlayerHandler.java
+index 38940ac..2ac85e6 100644
+--- a/src/main/java/com/crystalcraftmc/crystalspace/api/SpacePlayerHandler.java
++++ b/src/main/java/com/crystalcraftmc/crystalspace/api/SpacePlayerHandler.java
+@@ -18,6 +18,7 @@ import org.bukkit.block.Block;
+ import org.bukkit.block.BlockFace;
+ import org.bukkit.entity.Player;
+ import org.bukkit.inventory.ItemStack;
++import com.crystalcraftmc.crystalspace.util.LegacyMaterials;
+ 
+ import java.util.logging.Level;
+ 
+@@ -131,9 +132,9 @@ public class SpacePlayerHandler {
+             }
+         } else if (armortype.equalsIgnoreCase("gold")) {
+             // Gold
+-            if (!playerBoot.getType().equals(Material.GOLD_BOOTS)
+-                    || !playerChest.getType().equals(Material.GOLD_CHESTPLATE)
+-                    || !playerLeg.getType().equals(Material.GOLD_LEGGINGS)
++            if (!playerBoot.getType().equals(Material.GOLDEN_BOOTS)
++                    || !playerChest.getType().equals(Material.GOLDEN_CHESTPLATE)
++                    || !playerLeg.getType().equals(Material.GOLDEN_LEGGINGS)
+ 					) {
+                 return false;
+             }
+@@ -183,7 +184,7 @@ public class SpacePlayerHandler {
+ 		}
+ 		try {
+ 			int id = Integer.parseInt(materialOrId);
+-			return new ItemStack(id);
++			return new ItemStack(LegacyMaterials.fromId(id));
+ 		} catch (NumberFormatException ex) {
+ 			MessageHandler.debugPrint(Level.WARNING, "You have an error in your config.yml: " + materialOrId + " is not a material name or id.");
+ 		}
+@@ -191,7 +192,7 @@ public class SpacePlayerHandler {
+     }
+ 	
+ 	public static boolean typeAndAmountEqual(ItemStack one, ItemStack two) {
+-		return one.getAmount() == two.getAmount() && one.getTypeId() == two.getTypeId();
++		return one.getAmount() == two.getAmount() && one.getType() == two.getType();
+ 	}
+ 
+     /**
+@@ -235,7 +236,7 @@ public class SpacePlayerHandler {
+         boolean insideArea = false;
+         String id = ConfigHandler.getID(loc.getWorld());
+         while (i < ConfigHandler.getRoomHeight(id)) {
+-            if (block.getTypeId() != 0) {
++            if (!block.getType().isAir()) {
+                 insideArea = true;
+                 i = 0;
+                 break;
+diff --git a/src/main/java/com/crystalcraftmc/crystalspace/api/schematic/SpaceSchematicHandler.java b/src/main/java/com/crystalcraftmc/crystalspace/api/schematic/SpaceSchematicHandler.java
+index 3f21e24..3e3ccb2 100644
+--- a/src/main/java/com/crystalcraftmc/crystalspace/api/schematic/SpaceSchematicHandler.java
++++ b/src/main/java/com/crystalcraftmc/crystalspace/api/schematic/SpaceSchematicHandler.java
+@@ -16,6 +16,7 @@ import org.bukkit.World;
+ import org.bukkit.material.MaterialData;
+ import org.bukkit.util.BlockVector;
+ import org.jnbt.*;
++import com.crystalcraftmc.crystalspace.util.LegacyMaterials;
+ 
+ import java.io.File;
+ import java.io.FileInputStream;
+@@ -82,7 +83,6 @@ public class SpaceSchematicHandler {
+ 
+             for (Material material : blocksMap.get(location).keySet()) {
+                 world.getBlockAt(originX, originY, originZ).setType(material);
+-                world.getBlockAt(originX, originY, originZ).setData(blocksMap.get(location).get(material).getData());
+             }
+         }
+     }
+@@ -250,7 +250,7 @@ public class SpaceSchematicHandler {
+             for (int y = 0; y < schematic.getHeight(); ++y) {
+                 for (int z = 0; z < schematic.getLength(); ++z) {
+                     int index = y * schematic.getWidth() * schematic.getLength() + z * schematic.getWidth() + x;
+-                    Material block = Material.getMaterial(schematic.getBlocks()[index]);
++                    Material block = LegacyMaterials.fromId(Byte.toUnsignedInt(schematic.getBlocks()[index]));
+                     MaterialData blockData = null;
+                     try {
+                         blockData = new MaterialData(block, schematic.getBlockData()[index]);
+diff --git a/src/main/java/com/crystalcraftmc/crystalspace/listeners/misc/BlackHolePlayerListener.java b/src/main/java/com/crystalcraftmc/crystalspace/listeners/misc/BlackHolePlayerListener.java
+index fd11b6c..0509bbd 100644
+--- a/src/main/java/com/crystalcraftmc/crystalspace/listeners/misc/BlackHolePlayerListener.java
++++ b/src/main/java/com/crystalcraftmc/crystalspace/listeners/misc/BlackHolePlayerListener.java
+@@ -14,6 +14,7 @@ import com.crystalcraftmc.crystalspace.wgen.populators.SpaceBlackHolePopulator;
+ import org.bukkit.Bukkit;
+ import org.bukkit.Chunk;
+ import org.bukkit.Location;
++import org.bukkit.Material;
+ import org.bukkit.block.Block;
+ import org.bukkit.entity.Player;
+ import org.bukkit.event.EventHandler;
+@@ -61,11 +62,10 @@ public class BlackHolePlayerListener implements Listener {
+ 	if (event.isCancelled() || !WorldHandler.isInAnySpace(event.getPlayer()) || event.getPlayer().getHealth() == 0 || !event.getPlayer().hasPermission("CrystalSpace.ignoreblackholes")) {
+             return;
+         }
+-	String id = WorldHandler.getID(event.getPlayer().getWorld());
+-	if(Action.LEFT_CLICK_BLOCK != event.getAction() || event.getClickedBlock().getTypeId() != SpaceBlackHolePopulator.ID_TO_USE){
++	if(Action.LEFT_CLICK_BLOCK != event.getAction() || event.getClickedBlock().getType() != SpaceBlackHolePopulator.TYPE_TO_USE){
+ 	    return;
+ 	}
+-	event.getClickedBlock().setTypeId(0);
++	event.getClickedBlock().setType(org.bukkit.Material.AIR);
+     }
+     /**
+      * Gets all running suck tasks.
+@@ -95,7 +95,7 @@ public class BlackHolePlayerListener implements Listener {
+                     for (int y = 0; y < 128; y++) {
+                         for (int z = 0; z < 16; z++) {
+ 			    Block block = chunk.getBlock(x, y, z);
+-			    if(block.getTypeId() == SpaceBlackHolePopulator.ID_TO_USE){
++			    if(block.getType() == SpaceBlackHolePopulator.TYPE_TO_USE){
+ 				nonSpoutBlocks.add(block);
+ 			    }
+ 
+diff --git a/src/main/java/com/crystalcraftmc/crystalspace/util/LegacyMaterials.java b/src/main/java/com/crystalcraftmc/crystalspace/util/LegacyMaterials.java
+new file mode 100644
+index 0000000..0a1d9ca
+--- /dev/null
++++ b/src/main/java/com/crystalcraftmc/crystalspace/util/LegacyMaterials.java
+@@ -0,0 +1,27 @@
++package com.crystalcraftmc.crystalspace.util;
++
++import org.bukkit.Material;
++
++public final class LegacyMaterials {
++    private LegacyMaterials() {}
++
++    public static Material fromId(int id) {
++        switch (id) {
++            case 0: return Material.AIR;
++            case 1: return Material.STONE;
++            case 8:
++            case 9: return Material.WATER;
++            case 10:
++            case 11: return Material.LAVA;
++            case 17: return Material.OAK_LOG;
++            case 18: return Material.OAK_LEAVES;
++            case 20: return Material.GLASS;
++            case 35: return Material.WHITE_WOOL;
++            case 79: return Material.ICE;
++            case 89: return Material.GLOWSTONE;
++            case 102: return Material.GLASS_PANE;
++            case 120: return Material.END_PORTAL_FRAME;
++            default: return Material.AIR;
++        }
++    }
++}
+diff --git a/src/main/java/com/crystalcraftmc/crystalspace/wgen/planets/PlanetsChunkGenerator.java b/src/main/java/com/crystalcraftmc/crystalspace/wgen/planets/PlanetsChunkGenerator.java
+index 2cd885c..aef85f9 100644
+--- a/src/main/java/com/crystalcraftmc/crystalspace/wgen/planets/PlanetsChunkGenerator.java
++++ b/src/main/java/com/crystalcraftmc/crystalspace/wgen/planets/PlanetsChunkGenerator.java
+@@ -27,6 +27,7 @@ import java.io.IOException;
+ import java.util.*;
+ import java.util.logging.Level;
+ import org.bukkit.configuration.InvalidConfigurationException;
++import com.crystalcraftmc.crystalspace.util.LegacyMaterials;
+ 
+ /**
+  * Generates a space world with planets.
+@@ -173,115 +174,6 @@ public class PlanetsChunkGenerator extends ChunkGenerator {
+     
+     
+ 
+-    /**
+-     * Generates a world.
+-     * 
+-     * @param world World
+-     * @param random Random
+-     * @param x X-pos
+-     * @param z Z-pos
+-     * @param biomes 
+-     * @return Byte array
+-     * @deprecated generateChunkData for 1.8+
+-     */
+-    @Override
+-    public byte[][] generateBlockSections(World world, Random random, int x, int z, BiomeGrid biomes){
+-        if (!planets.containsKey(world)) {
+-            planets.put(world, new ArrayList<Planetoid>());
+-        }
+-        byte[][] retVal = new byte[world.getMaxHeight() / 16][];
+-
+-        if (GENERATE) {
+-            generatePlanetoids(world, x, z);
+-            // Go through the current system's planetoids and fill in this chunk as
+-            // needed.
+-            for (Planetoid curPl : planets.get(world)) {
+-                // Find planet's center point relative to this chunk.
+-                int relCenterX = curPl.xPos - x * 16;
+-                int relCenterZ = curPl.zPos - z * 16;
+-
+-                for (int curX = -curPl.radius; curX <= curPl.radius; curX++) {//Iterate across every x block
+-                    boolean xShell = false;//Is part of the x shell
+-                    int chunkX = curX + relCenterX;
+-                    if (chunkX >= 0 && chunkX < 16) {
+-                        int worldX = curX + curPl.xPos;//get the x block number in the world
+-                        // Figure out radius of this circle
+-                        int distFromCenter = Math.abs(curX);//Distance from center in the x 
+-                        if (curPl.radius - distFromCenter < curPl.shellThickness) {//Check if part of xShell
+-                            xShell = true;
+-                        }
+-                        int zHalfLength = (int) Math.ceil(Math.sqrt((curPl.radius * curPl.radius) - (distFromCenter * distFromCenter)));//Half the amount of blocks in the z direction
+-                        for (int curZ = -zHalfLength; curZ <= zHalfLength; curZ++) {//Iterate over all z blocks 
+-                            int chunkZ = curZ + relCenterZ;
+-                            if (chunkZ >= 0 && chunkZ < 16) {
+-                                int worldZ = curZ + curPl.zPos;//get the z block number in the world
+-                                boolean zShell = false;//Is part of z shell
+-                                int zDistFromCenter = Math.abs(curZ);//Distance from center in the z
+-                                if (zHalfLength - zDistFromCenter < curPl.shellThickness) {//Check if part of zShell
+-                                    zShell = true;
+-                                }
+-                                int yHalfLength = (int) Math.ceil(Math.sqrt((zHalfLength * zHalfLength) - (zDistFromCenter * zDistFromCenter)));
+-                                for (int curY = -yHalfLength; curY <= yHalfLength; curY++) {
+-                                    int worldY = curY + curPl.yPos;
+-                                    boolean yShell = false;
+-                                    if (yHalfLength - Math.abs(curY) < curPl.shellThickness) {
+-                                        yShell = true;
+-                                    }
+-                                    if (xShell || zShell || yShell) {
+-                                        ArrayList<MaterialData> list = new ArrayList<MaterialData>(curPl.shellBlkIds);
+-                                        MaterialData get = list.get(random.nextInt(list.size()));
+-                                        setBlock(retVal, chunkX, worldY, chunkZ, (byte) get.getItemTypeId());
+-                                        if (get.getData() != 0) { //Has data
+-                                            SpaceDataPopulator.addCoords(world, x, z, chunkX, worldY, chunkZ, get.getData());
+-                                        }
+-                                    } else {
+-                                        ArrayList<MaterialData> list = new ArrayList<MaterialData>(curPl.coreBlkIds);
+-                                        // this confuses me too much. this part is setting core blocks, right? how is it "random"?
+-                                        MaterialData get = list.get(random.nextInt(list.size()));
+-                                        setBlock(retVal, chunkX, worldY, chunkZ, (byte) get.getItemTypeId());
+-                                        if (get.getData() != 0) { //Has data
+-                                            SpaceDataPopulator.addCoords(world, x, z, chunkX, worldY, chunkZ, get.getData());
+-                                        }
+-                                    }
+-                                }
+-                            }
+-                        }
+-                    }
+-                }
+-            }
+-
+-        }
+-        // Fill in the floor
+-        for (int floorY = 0; floorY < floorHeight; floorY++) {
+-            for (int floorX = 0; floorX < 16; floorX++) {
+-                for (int floorZ = 0; floorZ < 16; floorZ++) {
+-                    if (floorY == 0) {
+-                        setBlock(retVal, floorX, floorY, floorZ, (byte) Material.BEDROCK.getId());
+-                    } else {
+-                        setBlock(retVal, floorX, floorY, floorZ, (byte) floorBlock.getId());
+-                    }
+-                }
+-            }
+-        }
+-        return retVal;
+-    }
+-
+-    /**
+-     * 
+-     * @param result
+-     * @param x
+-     * @param y
+-     * @param z
+-     * @param blkid 
+-     * @deprecated ChunkGenerator.ChunkData.setBlock for 1.8+
+-     */
+-    static void setBlock(byte[][] result, int x, int y, int z, byte blkid) {
+-        if (result[y >> 4] == null) {
+-            result[y >> 4] = new byte[4096];
+-        }
+-        result[y >> 4][((y & 0xF) << 8) | (z << 4) | x] = blkid;
+-    }
+-
+     /**
+      * Generates planets.
+      * 
+@@ -310,8 +202,8 @@ public class PlanetsChunkGenerator extends ChunkGenerator {
+             spawnPl.xPos = 7;
+             spawnPl.yPos = 70;
+             spawnPl.zPos = 7;
+-            spawnPl.coreBlkIds = new HashSet<MaterialData>(Collections.singleton(new MaterialData(Material.LOG)));
+-            spawnPl.shellBlkIds = new HashSet<MaterialData>(Collections.singleton(new MaterialData(Material.LEAVES)));
++            spawnPl.coreBlkIds = new HashSet<MaterialData>(Collections.singleton(new MaterialData(Material.OAK_LOG)));
++            spawnPl.shellBlkIds = new HashSet<MaterialData>(Collections.singleton(new MaterialData(Material.OAK_LEAVES)));
+             spawnPl.shellThickness = 3;
+             spawnPl.radius = 6;
+             planets.get(world).add(spawnPl);
+@@ -342,13 +234,13 @@ public class PlanetsChunkGenerator extends ChunkGenerator {
+                     continue;//Don't care
+                 }
+                 switch (d.getItemType()) {
+-                    case LEAVES:
+-                        curPl.coreBlkIds = new HashSet<MaterialData>(Collections.singleton(new MaterialData(Material.LOG)));//If there's any leaves, only use wood
++                    case OAK_LEAVES:
++                        curPl.coreBlkIds = new HashSet<MaterialData>(Collections.singleton(new MaterialData(Material.OAK_LOG)));//If there's any leaves, only use wood
+                         break outer;
+                     case ICE:
+                         curPl.coreBlkIds = new HashSet<MaterialData>(Collections.singleton(new MaterialData(Material.WATER)));// If there's ice, use water? Not final
+                         break outer;
+-                    case WOOL:
++                    case WHITE_WOOL:
+                         curPl.coreBlkIds = getBlockTypes(rand, true, true);
+                         break outer;
+                     default:
+@@ -491,7 +383,7 @@ public class PlanetsChunkGenerator extends ChunkGenerator {
+             else{
+                 //UNSAFE! Does not check if id represents a block
+                 try {
+-                    matDatas.add(new MaterialData(Integer.parseInt(name), (byte) data));
++                    matDatas.add(new MaterialData(LegacyMaterials.fromId(Integer.parseInt(name)), (byte) data));
+                 } catch (NumberFormatException numberFormatException) {
+                     MessageHandler.print(Level.WARNING, "Unrecognized id (" + name + ") in planets.yml");
+                 }
+@@ -543,11 +435,11 @@ public class PlanetsChunkGenerator extends ChunkGenerator {
+                             continue;
+                         }
+                         switch (d.getItemType()) {
+-                            case BURNING_FURNACE:
++                            case FURNACE:
+                             case FIRE:
+                             case GLOWSTONE:
+                             case JACK_O_LANTERN:
+-                            case STATIONARY_LAVA:
++                            case LAVA:
+                                 retVal = null;//Try again
+                                 continue outer;
+                             default:
+diff --git a/src/main/java/com/crystalcraftmc/crystalspace/wgen/populators/SpaceAsteroidPopulator.java b/src/main/java/com/crystalcraftmc/crystalspace/wgen/populators/SpaceAsteroidPopulator.java
+index 8a794a8..60cbf48 100644
+--- a/src/main/java/com/crystalcraftmc/crystalspace/wgen/populators/SpaceAsteroidPopulator.java
++++ b/src/main/java/com/crystalcraftmc/crystalspace/wgen/populators/SpaceAsteroidPopulator.java
+@@ -43,45 +43,45 @@ public class SpaceAsteroidPopulator extends BlockPopulator {
+         for (int i = 0; i < 2; i++) {
+             Block block = getRandomBlock(source, random);
+             String id = ConfigHandler.getID(world);
+-            if (random.nextInt(200) <= ConfigHandler.getStoneChance(id) && block.getTypeId() == 0) {
+-                block.setTypeId(1);
++            if (random.nextInt(200) <= ConfigHandler.getStoneChance(id) && block.getType().isAir()) {
++                block.setType(org.bukkit.Material.STONE);
+                 for (int j = 0; j < 1500; j++) {
+                     Block current = block.getRelative(random.nextInt(8) - random.nextInt(8),
+                             random.nextInt(12),
+                             random.nextInt(8) - random.nextInt(8));
+-                    if (current.getTypeId() != 0) {
++                    if (!current.getType().isAir()) {
+                         continue;
+                     }
+                     int count = 0;
+                     for (BlockFace face : faces) {
+-                        if (current.getRelative(face).getTypeId() == 1) {
++                        if (current.getRelative(face).getType() == org.bukkit.Material.STONE) {
+                             count++;
+                         }
+                     }
+                     if (count == 1) {
+-                        current.setTypeId(1);
++                        current.setType(org.bukkit.Material.STONE);
+                     }
+                 }
+             }
+             block = getRandomBlock(source, random);
+-            if (random.nextInt(200) <= ConfigHandler.getGlowstoneChance(id) && block.getTypeId() == 0) {
+-                block.setTypeId(89);
++            if (random.nextInt(200) <= ConfigHandler.getGlowstoneChance(id) && block.getType().isAir()) {
++                block.setType(org.bukkit.Material.GLOWSTONE);
+ 
+                 for (int j = 0; j < 1500; j++) {
+                     Block current = block.getRelative(random.nextInt(8) - random.nextInt(8),
+                             random.nextInt(12),
+                             random.nextInt(8) - random.nextInt(8));
+-                    if (current.getTypeId() != 0) {
++                    if (!current.getType().isAir()) {
+                         continue;
+                     }
+                     int count = 0;
+                     for (BlockFace face : faces) {
+-                        if (current.getRelative(face).getTypeId() == 89) {
++                        if (current.getRelative(face).getType() == org.bukkit.Material.GLOWSTONE) {
+                             count++;
+                         }
+                     }
+                     if (count == 1) {
+-                        current.setTypeId(89);
++                        current.setType(org.bukkit.Material.GLOWSTONE);
+                     }
+                 }
+             }
+diff --git a/src/main/java/com/crystalcraftmc/crystalspace/wgen/populators/SpaceBlackHolePopulator.java b/src/main/java/com/crystalcraftmc/crystalspace/wgen/populators/SpaceBlackHolePopulator.java
+index 3062a1f..a95eb6e 100644
+--- a/src/main/java/com/crystalcraftmc/crystalspace/wgen/populators/SpaceBlackHolePopulator.java
++++ b/src/main/java/com/crystalcraftmc/crystalspace/wgen/populators/SpaceBlackHolePopulator.java
+@@ -11,6 +11,7 @@ package com.crystalcraftmc.crystalspace.wgen.populators;
+ 
+ import com.crystalcraftmc.crystalspace.handlers.ConfigHandler;
+ import org.bukkit.Chunk;
++import org.bukkit.Material;
+ import org.bukkit.World;
+ import org.bukkit.block.Block;
+ import org.bukkit.generator.BlockPopulator;
+@@ -25,7 +26,7 @@ import java.util.Random;
+  * @author jflory7 
+  */
+ public class SpaceBlackHolePopulator extends BlockPopulator {
+-    public static final int ID_TO_USE = 120; //for easier changing if needed
++    public static final Material TYPE_TO_USE = Material.END_PORTAL_FRAME; //for easier changing if needed
+ 
+     public SpaceBlackHolePopulator() {
+     }
+@@ -53,7 +54,7 @@ public class SpaceBlackHolePopulator extends BlockPopulator {
+             int z = random.nextInt(16);
+             int y = random.nextInt(world.getMaxHeight());
+             Block block = world.getBlockAt((chunkX * 16 + x), y, (chunkZ * 16 + z));
+-            block.setTypeId(ID_TO_USE);
++            block.setType(TYPE_TO_USE);
+         }
+     }
+ 
+diff --git a/src/main/java/com/crystalcraftmc/crystalspace/wgen/populators/SpaceDataPopulator.java b/src/main/java/com/crystalcraftmc/crystalspace/wgen/populators/SpaceDataPopulator.java
+index 1aaa3d4..14641f6 100644
+--- a/src/main/java/com/crystalcraftmc/crystalspace/wgen/populators/SpaceDataPopulator.java
++++ b/src/main/java/com/crystalcraftmc/crystalspace/wgen/populators/SpaceDataPopulator.java
+@@ -41,7 +41,7 @@ public class SpaceDataPopulator extends BlockPopulator {
+         if (coords.get(world) == null) return;
+         for (WrappedCoords c : coords.get(world).keySet()) {
+             if (c.chunkX == chunk.getX() && c.chunkZ == chunk.getZ()) {
+-                chunk.getBlock(c.x, c.y, c.z).setData(coords.get(world).get(c));
++                // Legacy data values unsupported on modern API; keep base block material only.
+             }
+         }
+     }
+diff --git a/src/main/java/com/crystalcraftmc/crystalspace/wgen/populators/SpaceEffectPopulator.java b/src/main/java/com/crystalcraftmc/crystalspace/wgen/populators/SpaceEffectPopulator.java
+index efc3691..7b3e334 100644
+--- a/src/main/java/com/crystalcraftmc/crystalspace/wgen/populators/SpaceEffectPopulator.java
++++ b/src/main/java/com/crystalcraftmc/crystalspace/wgen/populators/SpaceEffectPopulator.java
+@@ -36,7 +36,7 @@ public class SpaceEffectPopulator extends BlockPopulator {
+     public void populate(World world, Random random, Chunk source) {
+         for (int x = 0; x < 16; x++) {
+             for (int z = 0; z < 16; z++) {
+-                source.getBlock(x, 1, z).setType(Material.ENDER_PORTAL);
++                source.getBlock(x, 1, z).setType(Material.END_PORTAL);
+             }
+         }
+     }
+diff --git a/src/main/java/com/crystalcraftmc/crystalspace/wgen/populators/SpaceSatellitePopulator.java b/src/main/java/com/crystalcraftmc/crystalspace/wgen/populators/SpaceSatellitePopulator.java
+index eedee93..a02ea9d 100644
+--- a/src/main/java/com/crystalcraftmc/crystalspace/wgen/populators/SpaceSatellitePopulator.java
++++ b/src/main/java/com/crystalcraftmc/crystalspace/wgen/populators/SpaceSatellitePopulator.java
+@@ -50,12 +50,12 @@ public class SpaceSatellitePopulator extends BlockPopulator {
+     private void buildSatellite(World world, int height, Chunk source) {
+         for (int x = 0; x < 5; x++) {
+             for (int y = 0; y < 3; y++) {
+-                source.getBlock(y, height, x).setTypeId(102);
++                source.getBlock(y, height, x).setType(org.bukkit.Material.GLASS_PANE);
+             }
+         }
+         for (int x = 6; x < 11; x++) {
+             for (int y = 0; y < 3; y++) {
+-                source.getBlock(y, height, x).setTypeId(102);
++                source.getBlock(y, height, x).setType(org.bukkit.Material.GLASS_PANE);
+             }
+         }
+         for (int y = 0; y < 3; y++) {
+-- 
+2.43.0
+
