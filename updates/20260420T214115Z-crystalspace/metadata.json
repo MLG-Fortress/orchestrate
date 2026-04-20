@@ -1,0 +1,8 @@
+{
+  "source_repo": "MLG-Fortress/crystalspace",
+  "source_default_branch": "master",
+  "generated_at_utc": "2026-04-20T21:41:15Z",
+  "orchestrate_branch": "codex/20260420T214115Z-crystalspace-ci-workflow",
+  "user_prompt": "add the ci.yaml workflow I have in mountaindewritoes to crystalspace",
+  "patch_dir": "updates/20260420T214115Z-crystalspace/patches"
+}
