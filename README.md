@@ -28,9 +28,6 @@ Configuration + automation:
 # branch everywhere
 ./scripts/orchestrate.sh branch feat/shared-change
 
-# crystal-space dependency update (auto-detect Paper or Purpur)
-./scripts/orchestrate.sh crystalspace-bump repos/crystal-space
-
 # make edits in one or more hydrated repos
 
 # commit changed repos
@@ -49,7 +46,6 @@ Configuration + automation:
 
 ./scripts/orchestrate.sh hydrate
 ./scripts/orchestrate.sh branch feat/offline-change
-./scripts/orchestrate.sh crystalspace-bump repos/crystal-space
 ./scripts/orchestrate.sh commit "feat: offline change"
 
 # export handoff patch files for someone with upstream access
@@ -59,11 +55,3 @@ Configuration + automation:
 Handoff output:
 - `handoff/<repo>.patch`
 - `handoff/<repo>.md` (apply instructions)
-
-Crystal-space bump behavior:
-- if dependency is `io.papermc.paper:paper-api`, set version to `[26.1.2.build,)`
-- if dependency is `org.purpurmc.purpur:purpur-api`, set version to `26.1.2.build.2570-experimental`
-- add required repositories:
-  - `https://repo.papermc.io/repository/maven-public/`
-  - `https://repo.purpurmc.org/snapshots`
-- run `mvn -DskipTests compile` when root `pom.xml` exists
