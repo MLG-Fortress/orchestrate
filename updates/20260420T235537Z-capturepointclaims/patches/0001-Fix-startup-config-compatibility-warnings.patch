@@ -1,0 +1,25 @@
+From 8adbc5e067ed326b2630d5a37ddf8ecaaa4c9737 Mon Sep 17 00:00:00 2001
+From: Serbur <19244210+MLG-SERBUR@users.noreply.github.com>
+Date: Mon, 20 Apr 2026 23:55:03 +0000
+Subject: [PATCH] Fix startup/config compatibility warnings
+
+---
+ src/main/java/com/robomwm/CapturePointClaims/region/Region.java | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/src/main/java/com/robomwm/CapturePointClaims/region/Region.java b/src/main/java/com/robomwm/CapturePointClaims/region/Region.java
+index 0c4da0b..0ef3232 100644
+--- a/src/main/java/com/robomwm/CapturePointClaims/region/Region.java
++++ b/src/main/java/com/robomwm/CapturePointClaims/region/Region.java
+@@ -38,6 +38,8 @@ public class Region
+ 
+     public String getName()
+     {
++        if (getWorld() == null)
++            return "unknown " + regionX + " " + regionZ;
+         return getWorld().getName() + " " + regionX + " " + regionZ;
+     }
+ 
+-- 
+2.43.0
+

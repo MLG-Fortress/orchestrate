@@ -1,0 +1,31 @@
+From 4adaf3dcc6b3a5234a3d81ef69947e8ae2746b33 Mon Sep 17 00:00:00 2001
+From: Serbur <19244210+MLG-SERBUR@users.noreply.github.com>
+Date: Mon, 20 Apr 2026 23:55:03 +0000
+Subject: [PATCH] Fix startup/config compatibility warnings
+
+---
+ .../java/com/robomwm/customitemregistry/CustomItems.java  | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
+
+diff --git a/src/main/java/com/robomwm/customitemregistry/CustomItems.java b/src/main/java/com/robomwm/customitemregistry/CustomItems.java
+index 5454c57..d12b994 100644
+--- a/src/main/java/com/robomwm/customitemregistry/CustomItems.java
++++ b/src/main/java/com/robomwm/customitemregistry/CustomItems.java
+@@ -55,7 +55,13 @@ class CustomItems implements CommandExecutor
+         {
+             try
+             {
+-                customItemRegistry.registerItem((ItemStack)itemsYaml.get(itemString), itemString);
++                Object loadedItem = itemsYaml.get(itemString);
++                if (!(loadedItem instanceof ItemStack))
++                {
++                    customItemRegistry.getLogger().warning("Failed to load item " + itemString + ": expected serialized ItemStack but found " + (loadedItem == null ? "null" : loadedItem.getClass().getSimpleName()));
++                    continue;
++                }
++                customItemRegistry.registerItem(((ItemStack)loadedItem), itemString);
+             }
+             catch (Throwable rock)
+             {
+-- 
+2.43.0
+

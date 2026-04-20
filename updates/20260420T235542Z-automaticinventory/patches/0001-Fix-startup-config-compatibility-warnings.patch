@@ -1,0 +1,54 @@
+From fd8ddb4c92ebfddd6e12497312a8bebf8a5d8557 Mon Sep 17 00:00:00 2001
+From: Serbur <19244210+MLG-SERBUR@users.noreply.github.com>
+Date: Mon, 20 Apr 2026 23:55:03 +0000
+Subject: [PATCH] Fix startup/config compatibility warnings
+
+---
+ .../AutomaticInventory/AutomaticInventory.java  | 17 +++++++++++++++--
+ 1 file changed, 15 insertions(+), 2 deletions(-)
+
+diff --git a/src/me/ryanhamshire/AutomaticInventory/AutomaticInventory.java b/src/me/ryanhamshire/AutomaticInventory/AutomaticInventory.java
+index 491031f..d9afae8 100644
+--- a/src/me/ryanhamshire/AutomaticInventory/AutomaticInventory.java
++++ b/src/me/ryanhamshire/AutomaticInventory/AutomaticInventory.java
+@@ -48,6 +48,19 @@ public class AutomaticInventory extends JavaPlugin
+ 		log.info(entry);
+ 	}
+ 	
++	private Material parseConfiguredMaterial(String idString)
++	{
++		Material material = Material.matchMaterial(idString.toUpperCase());
++		if (material != null) return material;
++
++		switch (idString)
++		{
++			case "0": return Material.AIR;
++			case "373": return Material.POTION;
++			default: return null;
++		}
++	}
++	
+ 	public void onEnable()
+ 	{
+ 	    log = getLogger();
+@@ -72,7 +85,7 @@ public class AutomaticInventory extends JavaPlugin
+         
+         for(String idString : noAutoRefillIDs_string)
+         {
+-            Material material = Material.matchMaterial(idString.toUpperCase());
++            Material material = parseConfiguredMaterial(idString);
+             if (material == null)
+                 getLogger().warning(idString + " is not a valid material");
+             else
+@@ -92,7 +105,7 @@ public class AutomaticInventory extends JavaPlugin
+         
+         for(String idString : noAutoDepositIDs_string)
+         {
+-            Material material = Material.matchMaterial(idString.toUpperCase());
++            Material material = parseConfiguredMaterial(idString);
+             if (material == null)
+                 getLogger().warning(idString + " is not a valid material");
+             else
+-- 
+2.43.0
+

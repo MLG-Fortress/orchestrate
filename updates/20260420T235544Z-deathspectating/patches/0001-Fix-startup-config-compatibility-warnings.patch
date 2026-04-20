@@ -1,0 +1,42 @@
+From cb4efbd5415c004e56408d5df9b39b5f4373107f Mon Sep 17 00:00:00 2001
+From: Serbur <19244210+MLG-SERBUR@users.noreply.github.com>
+Date: Mon, 20 Apr 2026 23:55:03 +0000
+Subject: [PATCH] Fix startup/config compatibility warnings
+
+---
+ .../robomwm/deathspectating/ConfigManager.java    | 15 ++++++++++++---
+ 1 file changed, 12 insertions(+), 3 deletions(-)
+
+diff --git a/src/main/java/com/robomwm/deathspectating/ConfigManager.java b/src/main/java/com/robomwm/deathspectating/ConfigManager.java
+index 0188604..ec52755 100644
+--- a/src/main/java/com/robomwm/deathspectating/ConfigManager.java
++++ b/src/main/java/com/robomwm/deathspectating/ConfigManager.java
+@@ -79,13 +79,22 @@ public class ConfigManager
+         }
+         if (config.getBoolean("useWorldWhitelist"))
+         {
++            boolean removedInvalidWorlds = false;
+             for (String worldName : config.getStringList("worldWhitelist"))
+             {
+                 World world = instance.getServer().getWorld(worldName);
+                 if (world == null)
+-                    instance.getLogger().warning("World " + worldName + " does not exist. We advise removing this from the worldWhitelist in the config for DeathSpectating");
+-                else
+-                    whitelistedWorlds.add(world);
++                {
++                    removedInvalidWorlds = true;
++                    instance.getLogger().warning("World " + worldName + " does not exist. Removing it from DeathSpectating worldWhitelist.");
++                    continue;
++                }
++                whitelistedWorlds.add(world);
++            }
++            if (removedInvalidWorlds)
++            {
++                config.set("worldWhitelist", whitelistedWorlds.stream().map(World::getName).collect(java.util.stream.Collectors.toList()));
++                instance.saveConfig();
+             }
+         }
+         for (String command : config.getStringList("commandWhitelist"))
+-- 
+2.43.0
+

@@ -1,0 +1,68 @@
+From b1871d2f6bee2c4111009caa235c5a762c8714af Mon Sep 17 00:00:00 2001
+From: Serbur <19244210+MLG-SERBUR@users.noreply.github.com>
+Date: Mon, 20 Apr 2026 23:55:03 +0000
+Subject: [PATCH] Fix startup/config compatibility warnings
+
+---
+ .../Commands/PseudoCommands.java              | 23 +------------------
+ 1 file changed, 1 insertion(+), 22 deletions(-)
+
+diff --git a/src/main/java/me/robomwm/MountainDewritoes/Commands/PseudoCommands.java b/src/main/java/me/robomwm/MountainDewritoes/Commands/PseudoCommands.java
+index 6738c4c..f7f9dcb 100644
+--- a/src/main/java/me/robomwm/MountainDewritoes/Commands/PseudoCommands.java
++++ b/src/main/java/me/robomwm/MountainDewritoes/Commands/PseudoCommands.java
+@@ -1,6 +1,5 @@
+ package me.robomwm.MountainDewritoes.Commands;
+ 
+-import me.robomwm.MountainDewritoes.ReflectionHandler;
+ import me.robomwm.MountainDewritoes.MountainDewritoes;
+ import me.robomwm.MountainDewritoes.NSA;
+ import org.bukkit.entity.Player;
+@@ -9,8 +8,6 @@ import org.bukkit.event.Listener;
+ import org.bukkit.event.player.PlayerCommandPreprocessEvent;
+ import org.bukkit.scheduler.BukkitRunnable;
+ 
+-import java.lang.reflect.Field;
+-import java.lang.reflect.Method;
+ 
+ /**
+  * Created on 8/19/2017.
+@@ -19,34 +16,16 @@ import java.lang.reflect.Method;
+  */
+ public class PseudoCommands implements Listener
+ {
+-    private static Method muhHandle;
+-    private static Field ping;
+     private MountainDewritoes instance;
+     public PseudoCommands(MountainDewritoes plugin)
+     {
+         plugin.getServer().getPluginManager().registerEvents(this, plugin);
+         instance = plugin;
+-        try
+-        {
+-            muhHandle = ReflectionHandler.getMethod("CraftPlayer", ReflectionHandler.PackageType.CRAFTBUKKIT_ENTITY, "getHandle");
+-            ping = ReflectionHandler.getField("EntityPlayer", ReflectionHandler.PackageType.MINECRAFT_SERVER, true, "ping");
+-        }
+-        catch (Throwable dum)
+-        {
+-            plugin.getLogger().warning("Ping command and etc. won't work.");
+-        }
+     }
+ 
+     public static String getPing(Player player)
+     {
+-        try
+-        {
+-            return ping.getInt(muhHandle.invoke(player)) + "ms";
+-        }
+-        catch (Throwable ignored)
+-        {
+-            return "over 9000!ms";
+-        }
++        return player.getPing() + "ms";
+     }
+ 
+     @EventHandler(ignoreCancelled = true)
+-- 
+2.43.0
+

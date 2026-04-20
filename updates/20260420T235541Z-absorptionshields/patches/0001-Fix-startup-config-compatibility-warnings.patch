@@ -1,0 +1,25 @@
+From 966f81240abd1dcb99d3b1cfe93b6cee83509a54 Mon Sep 17 00:00:00 2001
+From: Serbur <19244210+MLG-SERBUR@users.noreply.github.com>
+Date: Mon, 20 Apr 2026 23:55:03 +0000
+Subject: [PATCH] Fix startup/config compatibility warnings
+
+---
+ .../java/com/robomwm/absorptionshields/AbsorptionShields.java   | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/main/java/com/robomwm/absorptionshields/AbsorptionShields.java b/src/main/java/com/robomwm/absorptionshields/AbsorptionShields.java
+index 195aea9..06fb7c5 100644
+--- a/src/main/java/com/robomwm/absorptionshields/AbsorptionShields.java
++++ b/src/main/java/com/robomwm/absorptionshields/AbsorptionShields.java
+@@ -41,7 +41,7 @@ public class AbsorptionShields extends JavaPlugin
+     {
+         try
+         {
+-            customItemRegistry = (CustomItemRegistry)getServer().getPluginManager().getPlugin("CustomItemRecipes");
++            customItemRegistry = (CustomItemRegistry)getServer().getPluginManager().getPlugin("CustomItemRegistry");
+         }
+         catch (Throwable rock)
+         {
+-- 
+2.43.0
+

@@ -1,0 +1,49 @@
+From b72faa2967ac715a4ba50226f5267e099ab536eb Mon Sep 17 00:00:00 2001
+From: Serbur <19244210+MLG-SERBUR@users.noreply.github.com>
+Date: Mon, 20 Apr 2026 23:55:03 +0000
+Subject: [PATCH] Fix startup/config compatibility warnings
+
+---
+ src/main/java/com/extrahardmode/features/AntiGrinder.java | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/src/main/java/com/extrahardmode/features/AntiGrinder.java b/src/main/java/com/extrahardmode/features/AntiGrinder.java
+index 8e44043..036bec2 100644
+--- a/src/main/java/com/extrahardmode/features/AntiGrinder.java
++++ b/src/main/java/com/extrahardmode/features/AntiGrinder.java
+@@ -84,12 +84,12 @@ public class AntiGrinder extends ListenerModule
+ 
+     @EventHandler(priority = EventPriority.LOW)
+     public void onEntitySpawn(CreatureSpawnEvent event) {
+-        event.setCancelled(!handleEntitySpawn(event));
++        event.setCancelled(!shouldAllowSpawn(event));
+     }
+ 
+     @EventHandler
+     public void onEntityDeath(EntityDeathEvent event) {
+-        handleEntityDeath(event);
++        shouldKeepLoot(event);
+     }
+ 
+     /**
+@@ -97,7 +97,7 @@ public class AntiGrinder extends ListenerModule
+      *
+      * @return true succeeded and false if cancelled or marked lootless
+      */
+-    public boolean handleEntitySpawn(CreatureSpawnEvent event)
++    private boolean shouldAllowSpawn(CreatureSpawnEvent event)
+     {
+         Location location = event.getLocation();
+         World world = location.getWorld();
+@@ -159,7 +159,7 @@ public class AntiGrinder extends ListenerModule
+      *
+      * @return true if drops loot, false if loot was blocked
+      */
+-    public boolean handleEntityDeath(EntityDeathEvent event)
++    private boolean shouldKeepLoot(EntityDeathEvent event)
+     {
+         LivingEntity entity = event.getEntity();
+         World world = entity.getWorld();
+-- 
+2.43.0
+
