@@ -1,89 +1,63 @@
 # orchestrate
 
-This repo is a **control plane** for multiple repositories without forcing a monorepo migration.
+Control repo for managing changes across multiple upstream repositories without converting to monorepo.
 
-## Recommended pattern
+## Workflow
 
-- Keep each product repo independent.
-- Hydrate repos locally when access exists (`git clone`).
-- If access is blocked, import a snapshot archive and still do full edit/test work here.
-- Export patch handoff files so you (or another user with access) can apply and PR upstream.
+- Hydrate configured repos locally.
+- Create/switch shared task branch across hydrated repos.
+- Commit/push/PR per repo when needed.
+- Generate handoff patches when direct upstream PR flow not available.
 
-## Example for MLG fortress org
-
-Managed repos in this sample:
-- `MLG-fortress/maxi-world`
-- `MLG-fortress/crystal-space`
-
-Configuration + automation:
-- [`orchestrate.yaml`](orchestrate.yaml)
-- [`scripts/orchestrate.sh`](scripts/orchestrate.sh)
-
-## Quick start (access available)
+## Commands
 
 ```bash
-# clone configured repos into repos/*
 ./scripts/orchestrate.sh hydrate
-
-# branch everywhere
-./scripts/orchestrate.sh branch feat/shared-change
-
-# make edits in one or more hydrated repos
-
-# commit changed repos
-./scripts/orchestrate.sh commit "feat: shared change"
-
-# push + PR
-./scripts/orchestrate.sh pr "feat: shared change"
+./scripts/orchestrate.sh branch <task-branch>
+./scripts/orchestrate.sh commit "<message>"
+./scripts/orchestrate.sh pr "<title>"
+./scripts/orchestrate.sh handoff [output-dir]
 ```
 
-## Quick start (no access available)
+## Handoff output
 
-```bash
-# place archives in imports/, example:
-# imports/crystal-space.tar.gz
-# imports/maxi-world.tar.gz
-
-./scripts/orchestrate.sh hydrate
-./scripts/orchestrate.sh branch feat/offline-change
-./scripts/orchestrate.sh commit "feat: offline change"
-
-# export handoff patch files for someone with upstream access
-./scripts/orchestrate.sh handoff handoff
-```
-
-Handoff output:
+`handoff` command writes per-repo artifacts:
 - `handoff/<repo>.patch`
-- `handoff/<repo>.md` (apply instructions)
-- `handoff/<repo>.meta` (task branch + defaults for automation)
+- `handoff/<repo>.md`
+- `handoff/<repo>.meta`
 
-## Future AI task protocol (required flow)
+`<repo>.meta` includes:
+- `task_branch`
+- `default_branch`
+- `patch_file`
 
-For each new task in this repo:
+## Publish handoff automation
 
-1. Work from a new orchestrate branch (task branch).
-2. Clone target upstream repo directly (if missing), do requested edits there, validate there.
-3. Export patch back into this repo under `handoff/`.
-4. Ensure handoff notes include the orchestrate task branch.
-5. Commit in this repo and open PR as usual.
-
-### Apply/push automation script
-
-Use `scripts/publish-handoff.sh` in your external automation runner:
+Use from external automation runner:
 
 ```bash
 ./scripts/publish-handoff.sh \
-  --repo-url https://github.com/MLG-Fortress/CrystalSpace \
-  --repo-dir /tmp/CrystalSpace \
-  --patch handoff/crystal-space.patch \
-  --branch <task-branch-from-handoff-meta> \
-  --base main \
+  --repo-url <repo-url> \
+  --repo-dir <local-clone-dir> \
+  --patch <handoff.patch> \
+  --branch <task-branch> \
+  --base <default-branch> \
   --commit-message "chore: apply handoff patch"
 ```
 
-What it does:
+What script does:
 - clone repo if missing
-- `git fetch` + branch checkout/create
-- `git pull --rebase`
-- apply patch (`git am` for mail patches, `git apply` + commit for raw diffs)
+- fetch + checkout/create branch
+- pull with rebase when remote branch exists
+- apply patch (`git am` for mail patch, `git apply` + commit for raw diff)
 - push branch
+
+## Future AI task protocol
+
+For each task:
+1. Create new branch in this control repo.
+2. Hydrate/clone target upstream repo and make requested edits.
+3. Validate in target repo as far as environment allows.
+4. Export handoff artifacts back into `handoff/`.
+5. Ensure handoff metadata includes task branch.
+6. Commit changes in this repo and open PR.
