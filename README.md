@@ -34,12 +34,15 @@ See:
 # 2) create feature branch in all managed repos
 ./scripts/orchestrate.sh branch feat/shared-balance-tuning
 
-# 3) make edits in repos/maxi-world and/or repos/crystal-space
+# 3) (optional) automatically update crystal-space Paper/Purpur API
+./scripts/orchestrate.sh update-crystalspace repos/crystal-space
 
-# 4) commit in changed repos
+# 4) make edits in repos/maxi-world and/or repos/crystal-space
+
+# 5) commit in changed repos
 ./scripts/orchestrate.sh commit "feat: shared balance tuning"
 
-# 5) push and open PRs
+# 6) push and open PRs
 ./scripts/orchestrate.sh pr "feat: shared balance tuning"
 ```
 
@@ -49,3 +52,13 @@ See:
 - Each downstream PR targets its real upstream repo.
 - Branch names can match across repos for traceability.
 - One orchestration script standardizes branch/commit/PR flow.
+
+
+## Crystal-space dependency updater
+
+`update-crystalspace` scans `pom.xml` files under the target path and:
+
+- sets `io.papermc.paper:paper-api` to `<version>[26.1.2.build,)</version>`
+- sets `org.purpurmc.purpur:purpur-api` to `26.1.2.build.2570-experimental`
+- ensures required Maven repositories exist (`papermc` and/or `purpur`)
+- runs `mvn -DskipTests compile` when a root `pom.xml` exists

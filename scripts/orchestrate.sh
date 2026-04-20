@@ -10,6 +10,7 @@ Usage:
   $0 branch <branch-name>
   $0 commit <commit-message>
   $0 pr <title>
+  $0 update-crystalspace [path]
 USAGE
 }
 
@@ -127,6 +128,11 @@ open_prs() {
   done < <(manifest_rows)
 }
 
+update_crystalspace() {
+  local path="${1:-repos/crystal-space}"
+  "$(dirname "$0")/update-crystalspace.sh" "$path"
+}
+
 main() {
   if [[ $# -lt 1 ]]; then
     usage
@@ -151,6 +157,9 @@ main() {
     pr)
       require_clean_args 1 "$@"
       open_prs "$1"
+      ;;
+    update-crystalspace)
+      update_crystalspace "${1:-repos/crystal-space}"
       ;;
     *)
       usage

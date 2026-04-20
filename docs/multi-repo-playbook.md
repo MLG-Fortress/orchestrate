@@ -42,7 +42,19 @@ Edit files directly inside:
 - `repos/maxi-world/...`
 - `repos/crystal-space/...`
 
-### 3) Commit per repo
+### 3) Update crystal-space Paper/Purpur baseline
+
+```bash
+./scripts/orchestrate.sh update-crystalspace repos/crystal-space
+```
+
+Effect:
+- detects whether `crystal-space` uses `paper-api` or `purpur-api`
+- updates to requested 26.1.2 line
+- adds required Maven repository URLs
+- runs a compile check (`mvn -DskipTests compile`) when root pom exists
+
+### 4) Commit per repo
 
 ```bash
 ./scripts/orchestrate.sh commit "feat: xp curve rework"
@@ -52,7 +64,7 @@ Effect:
 - commits only in repos with staged or unstaged changes
 - leaves untouched repos alone
 
-### 4) Push and open PRs
+### 5) Push and open PRs
 
 ```bash
 ./scripts/orchestrate.sh pr "feat: xp curve rework"
