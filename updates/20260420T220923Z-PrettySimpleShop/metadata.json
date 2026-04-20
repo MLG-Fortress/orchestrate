@@ -1,0 +1,8 @@
+{
+  "source_repo": "MLG-Fortress/PrettySimpleShop",
+  "source_default_branch": "master",
+  "generated_at_utc": "2026-04-20T22:09:23Z",
+  "orchestrate_branch": "chore/prettysimpleshop-java25-fix",
+  "user_prompt": "[ERROR] COMPILATION ERROR :\n[INFO] -------------------------------------------------------------\n[ERROR] Source option 5 is no longer supported. Use 8 or later.\n[ERROR] Target option 5 is no longer supported. Use 8 or later.\n[INFO] 2 errors\n[INFO] -------------------------------------------------------------\n[INFO] ------------------------------------------------------------------------\n[INFO] BUILD FAILURE\n[INFO] ------------------------------------------------------------------------\n[INFO] Total time:  3.747 s\n[INFO] Finished at: 2026-04-20T22:04:58Z\n[INFO] ------------------------------------------------------------------------\n[ERROR] Failed to execute goal org.apache.maven.plugins:maven-compiler-plugin:3.1:compile (default-compile) on project PrettySimpleShop: Compilation failure: Compilation failure:\n[ERROR] Source option 5 is no longer supported. Use 8 or later.\n[ERROR] Target option 5 is no longer supported. Use 8 or later.\n[ERROR] -> [Help 1]\n\nwhy is this not building on my PC but it is building just fine in the ci? \n\njava -version\nopenjdk version \"25.0.2\" 2026-01-20 LTS\n\nmvn -version\nApache Maven 3.6.3\nMaven home: /usr/share/maven\nJava version: 25.0.2, vendor: Microsoft, runtime: /usr/lib/jvm/msopenjdk-25-amd64\nDefault locale: en_US, platform encoding: UTF-8\nOS name: \"linux\", version: \"5.15.0-168-generic\", arch: \"amd64\", family: \"unix\"",
+  "patch_dir": "updates/20260420T220923Z-PrettySimpleShop/patches"
+}

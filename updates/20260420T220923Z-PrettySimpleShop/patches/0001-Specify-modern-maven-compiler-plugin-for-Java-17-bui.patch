@@ -1,0 +1,31 @@
+From 228f083a6bde6b64be1bbf0474ec4a8e1ef704af Mon Sep 17 00:00:00 2001
+From: Serbur <19244210+MLG-SERBUR@users.noreply.github.com>
+Date: Mon, 20 Apr 2026 22:09:19 +0000
+Subject: [PATCH] Specify modern maven-compiler-plugin for Java 17 builds
+
+---
+ pom.xml | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/pom.xml b/pom.xml
+index 578b084..22f6419 100644
+--- a/pom.xml
++++ b/pom.xml
+@@ -70,6 +70,14 @@
+                     </execution>
+                 </executions>
+             </plugin>
++            <plugin>
++                <groupId>org.apache.maven.plugins</groupId>
++                <artifactId>maven-compiler-plugin</artifactId>
++                <version>3.14.0</version>
++                <configuration>
++                    <release>${maven.compiler.release}</release>
++                </configuration>
++            </plugin>
+             <plugin>
+                 <groupId>pl.project13.maven</groupId>
+                 <artifactId>git-commit-id-plugin</artifactId>
+-- 
+2.43.0
+
