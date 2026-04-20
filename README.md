@@ -1,64 +1,70 @@
 # orchestrate
 
-This repo can act as a **control plane** for multiple repositories without turning your codebase into one monorepo.
+This repo is a **control plane** for multiple repositories without forcing a monorepo migration.
 
 ## Recommended pattern
 
-Use a **meta-repository + git submodules**:
-
-- `orchestrate` holds automation, policies, and lightweight docs.
-- Each product repo remains its own Git repository (history, CI, releases unchanged).
-- You work from one top-level folder and can open PRs per downstream repo.
-
-This is the cleanest way to keep repos separate while still using one Codex workspace.
+- Keep each product repo independent.
+- Hydrate repos locally when access exists (`git clone`).
+- If access is blocked, import a snapshot archive and still do full edit/test work here.
+- Export patch handoff files so you (or another user with access) can apply and PR upstream.
 
 ## Example for MLG fortress org
 
-The sample in this repo demonstrates working with two repositories:
-
+Managed repos in this sample:
 - `MLG-fortress/maxi-world`
 - `MLG-fortress/crystal-space`
 
-See:
-
-- [`docs/multi-repo-playbook.md`](docs/multi-repo-playbook.md)
+Configuration + automation:
 - [`orchestrate.yaml`](orchestrate.yaml)
 - [`scripts/orchestrate.sh`](scripts/orchestrate.sh)
+- [`scripts/update-crystalspace.sh`](scripts/update-crystalspace.sh)
 
-## Quick start
+## Quick start (access available)
 
 ```bash
-# 1) initialize submodules (first run)
-./scripts/orchestrate.sh bootstrap
+# clone configured repos into repos/*
+./scripts/orchestrate.sh hydrate
 
-# 2) create feature branch in all managed repos
-./scripts/orchestrate.sh branch feat/shared-balance-tuning
+# branch everywhere
+./scripts/orchestrate.sh branch feat/shared-change
 
-# 3) (optional) automatically update crystal-space Paper/Purpur API
+# crystal-space dependency bump (Paper or Purpur auto-detected)
 ./scripts/orchestrate.sh update-crystalspace repos/crystal-space
 
-# 4) make edits in repos/maxi-world and/or repos/crystal-space
+# commit changed repos
+./scripts/orchestrate.sh commit "feat: shared change"
 
-# 5) commit in changed repos
-./scripts/orchestrate.sh commit "feat: shared balance tuning"
-
-# 6) push and open PRs
-./scripts/orchestrate.sh pr "feat: shared balance tuning"
+# push + PR
+./scripts/orchestrate.sh pr "feat: shared change"
 ```
 
-## Why this avoids monorepo pain
+## Quick start (no access available)
 
-- No history rewrite or code migration.
-- Each downstream PR targets its real upstream repo.
-- Branch names can match across repos for traceability.
-- One orchestration script standardizes branch/commit/PR flow.
+```bash
+# place archives in imports/, example:
+# imports/crystal-space.tar.gz
+# imports/maxi-world.tar.gz
 
+./scripts/orchestrate.sh hydrate
+./scripts/orchestrate.sh branch feat/offline-change
+./scripts/orchestrate.sh update-crystalspace repos/crystal-space
+./scripts/orchestrate.sh commit "feat: offline change"
 
-## Crystal-space dependency updater
+# export handoff patch files for someone with upstream access
+./scripts/orchestrate.sh handoff handoff
+```
 
-`update-crystalspace` scans `pom.xml` files under the target path and:
+Handoff output:
+- `handoff/<repo>.patch`
+- `handoff/<repo>.md` (apply instructions)
 
-- sets `io.papermc.paper:paper-api` to `<version>[26.1.2.build,)</version>`
-- sets `org.purpurmc.purpur:purpur-api` to `26.1.2.build.2570-experimental`
-- ensures required Maven repositories exist (`papermc` and/or `purpur`)
-- runs `mvn -DskipTests compile` when a root `pom.xml` exists
+## Crystal-space updater policy
+
+`update-crystalspace` scans all `pom.xml` files and:
+- if Paper: sets `io.papermc.paper:paper-api` to `<version>[26.1.2.build,)</version>`
+- if Purpur: sets `org.purpurmc.purpur:purpur-api` to `26.1.2.build.2570-experimental`
+- ensures required repositories exist:
+  - `https://repo.papermc.io/repository/maven-public/`
+  - `https://repo.purpurmc.org/snapshots`
+- runs `mvn -DskipTests compile` when root `pom.xml` exists

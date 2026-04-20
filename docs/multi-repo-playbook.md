@@ -2,87 +2,57 @@
 
 ## Goal
 
-Operate many repos from one control repo, while keeping each repo independent.
+Do full multi-repo work from one control repo, even when direct upstream access is unavailable.
 
-## Repository layout
+## Layout
 
 ```text
 orchestrate/
   orchestrate.yaml
   scripts/orchestrate.sh
+  scripts/update-crystalspace.sh
+  imports/                  # optional *.tar.gz snapshots when clone access unavailable
   repos/
-    maxi-world/      # git submodule -> git@github.com:MLG-fortress/maxi-world.git
-    crystal-space/   # git submodule -> git@github.com:MLG-fortress/crystal-space.git
+    maxi-world/
+    crystal-space/
+  handoff/                  # generated patch + apply-instructions for upstream PR handoff
 ```
 
-## One-time bootstrap
+## Online mode (clone access)
 
 ```bash
-# from orchestrate/
-./scripts/orchestrate.sh bootstrap
-```
-
-This runs `git submodule add` for each configured repository when missing.
-
-## Day-to-day flow
-
-### 1) Start synchronized feature branch
-
-```bash
+./scripts/orchestrate.sh hydrate
 ./scripts/orchestrate.sh branch feat/player-xp-rework
-```
-
-Effect:
-- creates/checks out `feat/player-xp-rework` in each repo
-- tracks each repo's configured default branch as base (`main` here)
-
-### 2) Implement changes
-
-Edit files directly inside:
-- `repos/maxi-world/...`
-- `repos/crystal-space/...`
-
-### 3) Update crystal-space Paper/Purpur baseline
-
-```bash
 ./scripts/orchestrate.sh update-crystalspace repos/crystal-space
+./scripts/orchestrate.sh commit "feat: xp rework"
+./scripts/orchestrate.sh pr "feat: xp rework"
 ```
 
-Effect:
-- detects whether `crystal-space` uses `paper-api` or `purpur-api`
-- updates to requested 26.1.2 line
-- adds required Maven repository URLs
-- runs a compile check (`mvn -DskipTests compile`) when root pom exists
+## Offline mode (no clone access)
 
-### 4) Commit per repo
+1. Put repo snapshots in `imports/`:
+   - `imports/maxi-world.tar.gz`
+   - `imports/crystal-space.tar.gz`
+2. Hydrate from archives, make changes, commit.
+3. Export patch handoff artifacts.
 
 ```bash
-./scripts/orchestrate.sh commit "feat: xp curve rework"
+./scripts/orchestrate.sh hydrate
+./scripts/orchestrate.sh branch feat/offline-rebalance
+./scripts/orchestrate.sh update-crystalspace repos/crystal-space
+./scripts/orchestrate.sh commit "feat: offline rebalance"
+./scripts/orchestrate.sh handoff handoff
 ```
 
-Effect:
-- commits only in repos with staged or unstaged changes
-- leaves untouched repos alone
-
-### 5) Push and open PRs
+Then apply in true upstream clone:
 
 ```bash
-./scripts/orchestrate.sh pr "feat: xp curve rework"
+git checkout -b feat/offline-rebalance
+git am < handoff/crystal-space.patch   # or git apply if raw diff mode
 ```
 
-Effect:
-- pushes current branch in each changed repo
-- opens PR in each changed repo via GitHub CLI (`gh`)
+## Why this solves access gaps
 
-## Notes on "clean PRs into upstream"
-
-This pattern keeps PRs clean because each PR is created from the true repo with true history.
-
-No subtree split, no filtered history, no synthetic mirror branch needed.
-
-## Optional guardrails
-
-- Add branch protection in each downstream repo.
-- Add CI checks in each downstream repo.
-- Keep shared branch naming convention (`feat/...`, `fix/...`).
-- Add commit trailer like `Orchestrate-Task: <id>` for traceability.
+- Agent can still do edits, dependency updates, and compile checks in this repo environment.
+- Generated handoff patch is portable to any upstream clone.
+- Upstream repos stay independent; no monorepo conversion required.

@@ -11,6 +11,8 @@ Usage:
   $0 commit <commit-message>
   $0 pr <title>
   $0 update-crystalspace [path]
+  $0 hydrate
+  $0 handoff [output-dir]
 USAGE
 }
 
@@ -58,6 +60,92 @@ require_clean_args() {
     usage
     exit 1
   fi
+}
+
+
+to_https_url() {
+  local url="$1"
+  if [[ "$url" =~ ^git@github.com:(.+)\.git$ ]]; then
+    echo "https://github.com/${BASH_REMATCH[1]}.git"
+  else
+    echo "$url"
+  fi
+}
+
+hydrate_repos() {
+  mkdir -p imports
+  while IFS='|' read -r name path url default_branch; do
+    if [[ -d "$path/.git" || -f "$path/.git" ]]; then
+      echo "[hydrate] $name already present at $path"
+      continue
+    fi
+
+    mkdir -p "$(dirname "$path")"
+    local clone_url
+    clone_url="$(to_https_url "$url")"
+
+    echo "[hydrate] cloning $name"
+    if git clone --depth 1 --branch "$default_branch" "$clone_url" "$path"; then
+      continue
+    fi
+
+    local archive="imports/${name}.tar.gz"
+    if [[ -f "$archive" ]]; then
+      echo "[hydrate] clone failed, using archive $archive"
+      mkdir -p "$path"
+      tar -xzf "$archive" -C "$path" --strip-components=1
+      if [[ ! -d "$path/.git" ]]; then
+        git -C "$path" init
+        git -C "$path" add -A
+        git -C "$path" commit -m "chore: import ${name} snapshot"
+      fi
+      continue
+    fi
+
+    echo "[error] could not hydrate $name (clone failed and $archive not found)" >&2
+    exit 1
+  done < <(manifest_rows)
+}
+
+create_handoff() {
+  local outdir="${1:-handoff}"
+  mkdir -p "$outdir"
+
+  while IFS='|' read -r name path _url default_branch; do
+    if [[ ! -d "$path/.git" && ! -f "$path/.git" ]]; then
+      echo "[skip] $name not hydrated"
+      continue
+    fi
+
+    local patch_file="$outdir/${name}.patch"
+    local note_file="$outdir/${name}.md"
+
+    if git -C "$path" rev-parse --verify "origin/$default_branch" >/dev/null 2>&1; then
+      git -C "$path" format-patch --stdout "origin/$default_branch..HEAD" > "$patch_file"
+      cat > "$note_file" <<NOTE
+# $name handoff
+
+Apply patch:
+
+\`git checkout -b <feature-branch>\`
+\`git am < ${patch_file}\`
+NOTE
+    else
+      git -C "$path" diff > "$patch_file"
+      cat > "$note_file" <<NOTE
+# $name handoff
+
+No remote tracking base available. Patch is raw diff.
+
+Apply patch:
+
+\`git checkout -b <feature-branch>\`
+\`git apply < ${patch_file}\`
+NOTE
+    fi
+
+    echo "[handoff] wrote $patch_file and $note_file"
+  done < <(manifest_rows)
 }
 
 bootstrap() {
@@ -160,6 +248,12 @@ main() {
       ;;
     update-crystalspace)
       update_crystalspace "${1:-repos/crystal-space}"
+      ;;
+    hydrate)
+      hydrate_repos
+      ;;
+    handoff)
+      create_handoff "${1:-handoff}"
       ;;
     *)
       usage
