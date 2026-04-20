@@ -1,0 +1,5 @@
+repo_name=crystal-space
+repo_path=repos/crystal-space
+default_branch=main
+task_branch=work
+patch_file=handoff/crystal-space.patch

@@ -1,0 +1,10 @@
+repos:
+  - name: maxi-world
+    path: repos/maxi-world
+    url: git@github.com:MLG-fortress/maxi-world.git
+    default_branch: main
+
+  - name: crystal-space
+    path: repos/crystal-space
+    url: git@github.com:MLG-fortress/crystal-space.git
+    default_branch: main
