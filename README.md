@@ -31,6 +31,5 @@ The script will:
 2. For each non-default branch, find metadata for target repo.
 3. Clone (or reuse) target repo in `~/buildupdates/<repo>`.
 4. Pull target default branch with rebase.
-5. Skip patches already applied on target branch.
-6. Apply remaining mail patches with `git am`.
-7. Push updates to target repository default branch when new patches were applied.
+5. Apply mail patches with `git am`.
+6. Push updates to target repository default branch.

@@ -77,27 +77,11 @@ for branch in "${REMOTE_BRANCHES[@]}"; do
     continue
   fi
 
-  applied_count=0
-  skipped_count=0
+  echo "Applying ${#patches[@]} patch(es) to ${source_repo}:${source_default_branch}"
+  git -C "${clone_path}" am "${patches[@]}"
+  git -C "${clone_path}" push origin "${source_default_branch}"
 
-  for patch in "${patches[@]}"; do
-    if git -C "${clone_path}" apply --check --reverse "${patch}" >/dev/null 2>&1; then
-      echo "Skipping already-applied patch: $(basename "${patch}")"
-      skipped_count=$((skipped_count + 1))
-      continue
-    fi
-
-    echo "Applying patch: $(basename "${patch}")"
-    git -C "${clone_path}" am "${patch}"
-    applied_count=$((applied_count + 1))
-  done
-
-  if [[ ${applied_count} -gt 0 ]]; then
-    git -C "${clone_path}" push origin "${source_default_branch}"
-    echo "Branch ${branch} applied ${applied_count} patch(es), skipped ${skipped_count}, and pushed for ${source_repo}."
-  else
-    echo "Branch ${branch} had no new patches to apply (skipped ${skipped_count})."
-  fi
+  echo "Branch ${branch} applied and pushed for ${source_repo}."
 
   cleanup
   trap - EXIT
