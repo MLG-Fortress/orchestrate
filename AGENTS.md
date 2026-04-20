@@ -40,7 +40,15 @@ Inside cloned target repo:
 1. Ensure default branch is up to date (`git checkout <default>` then `git pull --rebase`).
 2. Create feature branch for work.
 3. Make edits.
-4. Commit edits in target repo with author set to current user identity from orchestrator environment (name/email), not AI defaults.
+4. Commit edits in target repo with exact author identity below.
+   - Required name: `Serbur`
+   - Required email: `19244210+MLG-SERBUR@users.noreply.github.com`
+   - Set identity before commit:
+     - `git config user.name 'Serbur'`
+     - `git config user.email '19244210+MLG-SERBUR@users.noreply.github.com'`
+   - Do not use AI/bot identity values.
+   - Verify final target-repo commit author:
+     - `git log -1 --format='%an <%ae>'`
 5. Export patches:
    - `git format-patch --output-directory <orchestrate_repo>/updates/<timestamp>-<repo>/patches <default>..HEAD`
 
@@ -52,6 +60,8 @@ Every commit in this repo must include:
 - Caveman summary of assistant response in commit body.
 
 Caveman style:
-- Terse, technical, no fluff.
-- Drop filler/hedging.
-- Fragments okay.
+- Terse. Technical substance exact.
+- Only fluff die.
+- Drop: articles, filler, pleasantries, hedging.
+- Fragments OK. Short synonyms.
+- Code unchanged.
