@@ -12,6 +12,7 @@ Usage:
   $0 pr <title>
   $0 hydrate
   $0 handoff [output-dir]
+  $0 crystalspace-bump [path]
 USAGE
 }
 
@@ -147,6 +148,112 @@ NOTE
   done < <(manifest_rows)
 }
 
+crystalspace_bump() {
+  local path="${1:-repos/crystal-space}"
+
+  if [[ ! -d "$path" ]]; then
+    echo "[error] crystal-space path not found: $path" >&2
+    exit 1
+  fi
+
+  python3 - "$path" <<'PY'
+import sys
+from pathlib import Path
+import xml.etree.ElementTree as ET
+
+root_dir = Path(sys.argv[1])
+pom_files = [p for p in root_dir.rglob("pom.xml") if "target" not in p.parts]
+if not pom_files:
+    raise SystemExit("No pom.xml files found")
+
+PAPER_VERSION = "[26.1.2.build,)"
+PURPUR_VERSION = "26.1.2.build.2570-experimental"
+PAPER_REPO_URL = "https://repo.papermc.io/repository/maven-public/"
+PURPUR_REPO_URL = "https://repo.purpurmc.org/snapshots"
+
+def ns_tag(ns, tag):
+    return f"{{{ns}}}{tag}" if ns else tag
+
+def get_text(parent, tag, ns):
+    node = parent.find(ns_tag(ns, tag))
+    return (node.text or "").strip() if node is not None else ""
+
+def ensure_repo(project, ns, repo_id, url):
+    repositories = project.find(ns_tag(ns, "repositories"))
+    if repositories is None:
+        repositories = ET.SubElement(project, ns_tag(ns, "repositories"))
+
+    for repo in repositories.findall(ns_tag(ns, "repository")):
+        rid = get_text(repo, "id", ns)
+        url_node = repo.find(ns_tag(ns, "url"))
+        current_url = (url_node.text or "").strip() if url_node is not None else ""
+        if rid == repo_id or current_url == url:
+            if url_node is None:
+                url_node = ET.SubElement(repo, ns_tag(ns, "url"))
+            url_node.text = url
+            return
+
+    repo = ET.SubElement(repositories, ns_tag(ns, "repository"))
+    rid = ET.SubElement(repo, ns_tag(ns, "id"))
+    rid.text = repo_id
+    url_node = ET.SubElement(repo, ns_tag(ns, "url"))
+    url_node.text = url
+
+updated = []
+for pom in pom_files:
+    tree = ET.parse(pom)
+    project = tree.getroot()
+    ns = ""
+    if project.tag.startswith("{"):
+        ns = project.tag.split("}", 1)[0][1:]
+        ET.register_namespace("", ns)
+
+    found = False
+    changed = False
+
+    for dep in project.findall(f".//{ns_tag(ns, 'dependency')}"):
+        gid = get_text(dep, "groupId", ns)
+        aid = get_text(dep, "artifactId", ns)
+        version = dep.find(ns_tag(ns, "version"))
+        if version is None:
+            version = ET.SubElement(dep, ns_tag(ns, "version"))
+
+        if gid == "io.papermc.paper" and aid == "paper-api":
+            found = True
+            if version.text != PAPER_VERSION:
+                version.text = PAPER_VERSION
+                changed = True
+            ensure_repo(project, ns, "papermc", PAPER_REPO_URL)
+            changed = True
+
+        if gid == "org.purpurmc.purpur" and aid == "purpur-api":
+            found = True
+            if version.text != PURPUR_VERSION:
+                version.text = PURPUR_VERSION
+                changed = True
+            ensure_repo(project, ns, "purpur", PURPUR_REPO_URL)
+            changed = True
+
+    if found and changed:
+        tree.write(pom, encoding="utf-8", xml_declaration=True)
+        updated.append(str(pom))
+
+if not updated:
+    raise SystemExit("No paper-api or purpur-api dependencies found")
+
+print("Updated files:")
+for pom in updated:
+    print("-", pom)
+PY
+
+  if [[ -f "$path/pom.xml" ]]; then
+    echo "[compile] mvn -f $path/pom.xml -DskipTests compile"
+    mvn -f "$path/pom.xml" -DskipTests compile
+  else
+    echo "[warn] no root pom.xml found; compile skipped"
+  fi
+}
+
 bootstrap() {
   while IFS='|' read -r name path url default_branch; do
     if [[ -d "$path/.git" || -f "$path/.git" ]]; then
@@ -245,6 +352,9 @@ main() {
       ;;
     handoff)
       create_handoff "${1:-handoff}"
+      ;;
+    crystalspace-bump)
+      crystalspace_bump "${1:-repos/crystal-space}"
       ;;
     *)
       usage

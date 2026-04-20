@@ -22,6 +22,7 @@ orchestrate/
 ```bash
 ./scripts/orchestrate.sh hydrate
 ./scripts/orchestrate.sh branch feat/player-xp-rework
+./scripts/orchestrate.sh crystalspace-bump repos/crystal-space
 ./scripts/orchestrate.sh commit "feat: xp rework"
 ./scripts/orchestrate.sh pr "feat: xp rework"
 ```
@@ -37,6 +38,7 @@ orchestrate/
 ```bash
 ./scripts/orchestrate.sh hydrate
 ./scripts/orchestrate.sh branch feat/offline-rebalance
+./scripts/orchestrate.sh crystalspace-bump repos/crystal-space
 ./scripts/orchestrate.sh commit "feat: offline rebalance"
 ./scripts/orchestrate.sh handoff handoff
 ```
@@ -53,3 +55,10 @@ git am < handoff/crystal-space.patch   # or git apply if raw diff mode
 - Agent can still do edits and validations in this repo environment.
 - Generated handoff patch is portable to any upstream clone.
 - Upstream repos stay independent; no monorepo conversion required.
+
+## Crystal-space dependency rule
+
+- `paper-api` -> version `[26.1.2.build,)`
+- `purpur-api` -> version `26.1.2.build.2570-experimental`
+- Ensure Maven repository URLs for Paper/Purpur are present.
+- Run `mvn -DskipTests compile` from crystal-space root pom to catch compile errors.
