@@ -40,7 +40,7 @@ Inside cloned target repo:
 1. Ensure default branch is up to date (`git checkout <default>` then `git pull --rebase`).
 2. Create feature branch for work.
 3. Make edits.
-4. Commit edits in target repo.
+4. Commit edits in target repo with author set to current user identity from orchestrator environment (name/email), not AI defaults.
 5. Export patches:
    - `git format-patch --output-directory <orchestrate_repo>/updates/<timestamp>-<repo>/patches <default>..HEAD`
 
