@@ -31,57 +31,60 @@ for branch in "${REMOTE_BRANCHES[@]}"; do
 
   git worktree add --detach "${worktree_dir}" "origin/${branch}" >/dev/null
 
-  metadata_path="${worktree_dir}/update-metadata.json"
-  if [[ ! -f "${metadata_path}" ]]; then
-    metadata_path="$(find "${worktree_dir}/updates" -maxdepth 3 -type f -name metadata.json 2>/dev/null | head -n 1 || true)"
+  metadata_paths=()
+  if [[ -f "${worktree_dir}/update-metadata.json" ]]; then
+    metadata_paths+=("${worktree_dir}/update-metadata.json")
   fi
+  while IFS= read -r metadata_file; do
+    metadata_paths+=("${metadata_file}")
+  done < <(find "${worktree_dir}/updates" -maxdepth 3 -type f -name metadata.json 2>/dev/null | sort || true)
 
-  if [[ -z "${metadata_path}" || ! -f "${metadata_path}" ]]; then
+  if [[ ${#metadata_paths[@]} -eq 0 ]]; then
     echo "Skipping ${branch}: metadata file not found."
     cleanup
     trap - EXIT
     continue
   fi
 
-  source_repo="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["source_repo"])' "${metadata_path}")"
-  source_default_branch="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1])).get("source_default_branch","main"))' "${metadata_path}")"
-  patch_dir_rel="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1])).get("patch_dir",""))' "${metadata_path}")"
+  for metadata_path in "${metadata_paths[@]}"; do
+    source_repo="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["source_repo"])' "${metadata_path}")"
+    source_default_branch="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1])).get("source_default_branch","main"))' "${metadata_path}")"
+    patch_dir_rel="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1])).get("patch_dir",""))' "${metadata_path}")"
 
-  repo_name="${source_repo##*/}"
-  clone_url="git@github.com:${source_repo}.git"
-  clone_path="${TARGET_ROOT}/${repo_name}"
+    repo_name="${source_repo##*/}"
+    clone_url="git@github.com:${source_repo}.git"
+    clone_path="${TARGET_ROOT}/${repo_name}"
 
-  if [[ ! -d "${clone_path}/.git" ]]; then
-    echo "Cloning ${source_repo} into ${clone_path}"
-    git clone "${clone_url}" "${clone_path}"
-  fi
+    if [[ ! -d "${clone_path}/.git" ]]; then
+      echo "Cloning ${source_repo} into ${clone_path}"
+      git clone "${clone_url}" "${clone_path}"
+    fi
 
-  git -C "${clone_path}" fetch origin --prune
-  git -C "${clone_path}" checkout "${source_default_branch}"
-  git -C "${clone_path}" pull -r origin "${source_default_branch}"
+    git -C "${clone_path}" fetch origin --prune
+    git -C "${clone_path}" checkout "${source_default_branch}"
+    git -C "${clone_path}" pull -r origin "${source_default_branch}"
 
-  if [[ -n "${patch_dir_rel}" ]]; then
-    patch_dir_abs="${worktree_dir}/${patch_dir_rel}"
-  else
-    patch_dir_abs="$(dirname "${metadata_path}")/patches"
-  fi
+    if [[ -n "${patch_dir_rel}" ]]; then
+      patch_dir_abs="${worktree_dir}/${patch_dir_rel}"
+    else
+      patch_dir_abs="$(dirname "${metadata_path}")/patches"
+    fi
 
-  shopt -s nullglob
-  patches=("${patch_dir_abs}"/*.patch)
-  shopt -u nullglob
+    shopt -s nullglob
+    patches=("${patch_dir_abs}"/*.patch)
+    shopt -u nullglob
 
-  if [[ ${#patches[@]} -eq 0 ]]; then
-    echo "No patches found for ${branch} at ${patch_dir_abs}; skipping apply/push."
-    cleanup
-    trap - EXIT
-    continue
-  fi
+    if [[ ${#patches[@]} -eq 0 ]]; then
+      echo "No patches found for ${branch} at ${patch_dir_abs}; skipping apply/push."
+      continue
+    fi
 
-  echo "Applying ${#patches[@]} patch(es) to ${source_repo}:${source_default_branch}"
-  git -C "${clone_path}" am "${patches[@]}"
-  git -C "${clone_path}" push origin "${source_default_branch}"
+    echo "Applying ${#patches[@]} patch(es) to ${source_repo}:${source_default_branch}"
+    git -C "${clone_path}" am "${patches[@]}"
+    git -C "${clone_path}" push origin "${source_default_branch}"
 
-  echo "Branch ${branch} applied and pushed for ${source_repo}."
+    echo "Metadata ${metadata_path} applied and pushed for ${source_repo}."
+  done
 
   cleanup
   trap - EXIT
