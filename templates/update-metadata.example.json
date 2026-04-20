@@ -1,0 +1,8 @@
+{
+  "source_repo": "MLG-Fortress/example-repo",
+  "source_default_branch": "main",
+  "generated_at_utc": "2026-04-20T00:00:00Z",
+  "orchestrate_branch": "updates/example-repo-change",
+  "user_prompt": "<original user prompt>",
+  "patch_dir": "updates/20260420T000000Z-example-repo/patches"
+}
