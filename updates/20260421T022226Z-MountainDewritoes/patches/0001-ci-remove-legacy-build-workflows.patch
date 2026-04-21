@@ -1,0 +1,55 @@
+From 44166f785979a05ac95c27650c01d9b92b8e092e Mon Sep 17 00:00:00 2001
+From: Serbur <19244210+MLG-SERBUR@users.noreply.github.com>
+Date: Tue, 21 Apr 2026 02:22:28 +0000
+Subject: [PATCH] ci: remove legacy build workflows
+
+---
+ .github/workflows/build-release.yml | 35 -----------------------------
+ 1 file changed, 35 deletions(-)
+ delete mode 100644 .github/workflows/build-release.yml
+
+diff --git a/.github/workflows/build-release.yml b/.github/workflows/build-release.yml
+deleted file mode 100644
+index 80dcc0f..0000000
+--- a/.github/workflows/build-release.yml
++++ /dev/null
+@@ -1,35 +0,0 @@
+-name: Build Release
+-
+-on:
+-  release:
+-    types: [created]
+-
+-jobs:
+-  build:
+-
+-    runs-on: ubuntu-latest
+-
+-    steps:
+-    - uses: actions/checkout@v4
+-    - name: Set up JDK 21
+-      uses: actions/setup-java@v4
+-      with:
+-        java-version: 21
+-        distribution: 'temurin'
+-
+-    - name: Cache the Maven packages to speed up build
+-      uses: actions/cache@v4
+-      with:
+-        path: ~/.m2/repository
+-        key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+-        restore-keys: ${{ runner.os }}-maven      
+-
+-    - name: Build with Maven
+-      run: mvn -B package --file pom.xml
+-
+-    - name: Upload Release Asset
+-      uses: softprops/action-gh-release@v1
+-      with: 
+-        files: target/${{ github.event.repository.name }}.jar
+-      env:
+-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+\ No newline at end of file
+-- 
+2.43.0
+

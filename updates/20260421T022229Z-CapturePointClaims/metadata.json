@@ -1,0 +1,8 @@
+{
+  "source_repo": "MLG-Fortress/CapturePointClaims",
+  "source_default_branch": "master",
+  "generated_at_utc": "2026-04-21T02:22:31Z",
+  "orchestrate_branch": "work",
+  "user_prompt": "some repos in MLG-Fortress have \nbuild-release.yml\nbuild.yml\n\nworkflows added within the last 5 days. These repos should have the ci.yml file. delete the build.yml and build-release.yml",
+  "patch_dir": "updates/20260421T022229Z-CapturePointClaims/patches"
+}
