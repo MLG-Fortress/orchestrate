@@ -1,0 +1,8 @@
+{
+  "source_repo": "MLG-Fortress/simple-trading",
+  "source_default_branch": "master",
+  "generated_at_utc": "2026-04-21T01:45:30Z",
+  "orchestrate_branch": "update-minecraft-26.1.2-bundles",
+  "user_prompt": "update and fix the following repos to update to spigot, bukkit, paper or purpur (depending on what the project already uses) 26.1.2. if paper, use <version>[26.1.2.build,)</version>, if purpur, use 26.1.2.build.2570-experimental since I don't think [26.1.2.build,) works properly with their repo.\nfix any maven repos that need to be updated or added and any compile errors. Make sure it compiles, if it doesn't, fix it (maven repo or code or whatever) so it does.\n\n* `CreativeParkour` \u2014 `worldedit-bukkit:7.2.5` fetch failed from the configured sk89q repo\n* `GraviTree` \u2014 `repo.bstats.org` is dead / unknown host\n* `TheThuum` \u2014 configured Purpur repo returned 503\n* `simple-trading` \u2014 `VaultAPI` could not be resolved from the configured repos\n\nmake sure to fix any failing repos or the like. And also update any dependencies too if they're causing the build to fail.",
+  "patch_dir": "updates/20260421T014530Z-simple-trading/patches"
+}

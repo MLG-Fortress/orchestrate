@@ -1,0 +1,243 @@
+From eb3d10d4d948b523da245ad97b38693db281b37e Mon Sep 17 00:00:00 2001
+From: Serbur <19244210+MLG-SERBUR@users.noreply.github.com>
+Date: Tue, 21 Apr 2026 01:56:07 +0000
+Subject: [PATCH] Update server API dependencies and fix build compatibility
+
+---
+ pom.xml                                       | 17 ++++++---
+ .../packetwrapper/AbstractPacket.java         | 10 ++---
+ .../java/net/creativeparkour/BlocEffet.java   | 12 +++---
+ src/main/java/net/creativeparkour/Config.java | 37 ++++++++++++-------
+ src/main/java/net/creativeparkour/Joueur.java |  2 +-
+ .../net/creativeparkour/RewardManager.java    |  4 +-
+ 6 files changed, 49 insertions(+), 33 deletions(-)
+
+diff --git a/pom.xml b/pom.xml
+index dcfbf57..831831c 100644
+--- a/pom.xml
++++ b/pom.xml
+@@ -37,7 +37,7 @@
+ 		</repository>
+ 		<repository>
+ 			<id>sk89q-repo</id>
+-			<url>https://maven.sk89q.com/repo/</url>
++			<url>https://maven.enginehub.org/repo/</url>
+ 		</repository>
+ 		<repository>
+ 			<id>jitpack.io</id>
+@@ -53,7 +53,7 @@
+ 		<dependency>
+ 			<groupId>org.spigotmc</groupId>
+ 			<artifactId>spigot-api</artifactId>
+-			<version>1.18.1-R0.1-SNAPSHOT</version>
++			<version>26.1.1-R0.1-SNAPSHOT</version>
+ 			<scope>provided</scope>
+ 		</dependency>
+ 		<!--Bukkit API -->
+@@ -63,6 +63,11 @@
+ 			<version>1.16.1-R0.1-SNAPSHOT</version>
+ 			<scope>provided</scope>
+ 		</dependency> -->
++		<dependency>
++			<groupId>commons-lang</groupId>
++			<artifactId>commons-lang</artifactId>
++			<version>2.6</version>
++		</dependency>
+ 		<!-- WorldEdit -->
+ 		<dependency>
+ 			<groupId>com.sk89q.worldedit</groupId>
+@@ -72,16 +77,16 @@
+ 		</dependency>
+ 		<!-- Vault -->
+ 		<dependency>
+-			<groupId>net.milkbowl.vault</groupId>
++			<groupId>com.github.MilkBowl</groupId>
+ 			<artifactId>VaultAPI</artifactId>
+-			<version>1.7</version>
++			<version>1.7.1</version>
+ 			<scope>provided</scope>
+ 		</dependency>
+ 		<!-- ProtocolLib -->
+ 		<dependency>
+-			<groupId>com.comphenix.protocol</groupId>
++			<groupId>com.github.dmulloy2</groupId>
+ 			<artifactId>ProtocolLib</artifactId>
+-			<version>4.7.0</version>
++			<version>5.3.0</version>
+ 		</dependency>
+ 	</dependencies>
+ 	<url>https://creativeparkour.net</url>
+diff --git a/src/main/java/com/comphenix/packetwrapper/AbstractPacket.java b/src/main/java/com/comphenix/packetwrapper/AbstractPacket.java
+index 88fc4b9..68bccc1 100644
+--- a/src/main/java/com/comphenix/packetwrapper/AbstractPacket.java
++++ b/src/main/java/com/comphenix/packetwrapper/AbstractPacket.java
+@@ -18,7 +18,7 @@
+  */
+ package com.comphenix.packetwrapper;
+ 
+-import java.lang.reflect.InvocationTargetException;
++
+ 
+ import org.bukkit.entity.Player;
+ 
+@@ -67,7 +67,7 @@ public abstract class AbstractPacket {
+ 		try {
+ 			ProtocolLibrary.getProtocolManager().sendServerPacket(receiver,
+ 					getHandle());
+-		} catch (InvocationTargetException e) {
++		} catch (Exception e) {
+ 			throw new RuntimeException("Cannot send packet.", e);
+ 		}
+ 	}
+@@ -90,10 +90,10 @@ public abstract class AbstractPacket {
+ 	@Deprecated
+ 	public void recievePacket(Player sender) {
+ 		try {
+-			ProtocolLibrary.getProtocolManager().recieveClientPacket(sender,
++			ProtocolLibrary.getProtocolManager().receiveClientPacket(sender,
+ 					getHandle());
+ 		} catch (Exception e) {
+-			throw new RuntimeException("Cannot recieve packet.", e);
++			throw new RuntimeException("Cannot receive packet.", e);
+ 		}
+ 	}
+ 
+@@ -105,7 +105,7 @@ public abstract class AbstractPacket {
+ 	 */
+ 	public void receivePacket(Player sender) {
+ 		try {
+-			ProtocolLibrary.getProtocolManager().recieveClientPacket(sender,
++			ProtocolLibrary.getProtocolManager().receiveClientPacket(sender,
+ 					getHandle());
+ 		} catch (Exception e) {
+ 			throw new RuntimeException("Cannot receive packet.", e);
+diff --git a/src/main/java/net/creativeparkour/BlocEffet.java b/src/main/java/net/creativeparkour/BlocEffet.java
+index 7406899..5b5cd10 100644
+--- a/src/main/java/net/creativeparkour/BlocEffet.java
++++ b/src/main/java/net/creativeparkour/BlocEffet.java
+@@ -38,9 +38,9 @@ class BlocEffet extends BlocSpecial
+ 		
+ 		PotionEffectType effectType = null;
+ 		if (effect.equalsIgnoreCase("SPEED")) effectType = PotionEffectType.SPEED;
+-		else if (effect.equalsIgnoreCase("SLOW") || effect.equalsIgnoreCase("SLOWNESS")) effectType = PotionEffectType.SLOW;
+-		else if (effect.equalsIgnoreCase("JUMP") || effect.equalsIgnoreCase("JUMP_BOOST")) effectType = PotionEffectType.JUMP;
+-		else if (effect.equalsIgnoreCase("CONFUSION") || effect.equalsIgnoreCase("NAUSEA")) effectType = PotionEffectType.CONFUSION;
++		else if (effect.equalsIgnoreCase("SLOW") || effect.equalsIgnoreCase("SLOWNESS")) effectType = PotionEffectType.SLOWNESS;
++		else if (effect.equalsIgnoreCase("JUMP") || effect.equalsIgnoreCase("JUMP_BOOST")) effectType = PotionEffectType.JUMP_BOOST;
++		else if (effect.equalsIgnoreCase("CONFUSION") || effect.equalsIgnoreCase("NAUSEA")) effectType = PotionEffectType.NAUSEA;
+ 		else if (effect.equalsIgnoreCase("BLINDNESS")) effectType = PotionEffectType.BLINDNESS;
+ 		else if (effect.equalsIgnoreCase("NIGHT_VISION")) effectType = PotionEffectType.NIGHT_VISION;
+ 		else if (effect.equalsIgnoreCase("LEVITATION")) effectType = PotionEffectType.LEVITATION;
+@@ -112,9 +112,9 @@ class BlocEffet extends BlocSpecial
+ 	static void supprimerEffets(Player p)
+ 	{
+ 		p.removePotionEffect(PotionEffectType.SPEED);
+-		p.removePotionEffect(PotionEffectType.SLOW);
+-		p.removePotionEffect(PotionEffectType.JUMP);
+-		p.removePotionEffect(PotionEffectType.CONFUSION);
++		p.removePotionEffect(PotionEffectType.SLOWNESS);
++		p.removePotionEffect(PotionEffectType.JUMP_BOOST);
++		p.removePotionEffect(PotionEffectType.NAUSEA);
+ 		p.removePotionEffect(PotionEffectType.BLINDNESS);
+ 		p.removePotionEffect(PotionEffectType.NIGHT_VISION);
+ 		try {
+diff --git a/src/main/java/net/creativeparkour/Config.java b/src/main/java/net/creativeparkour/Config.java
+index a2fc6e3..f296158 100644
+--- a/src/main/java/net/creativeparkour/Config.java
++++ b/src/main/java/net/creativeparkour/Config.java
+@@ -31,7 +31,8 @@ import java.util.Set;
+ import java.util.UUID;
+ 
+ import org.bukkit.Bukkit;
+-import org.bukkit.Difficulty;
++import org.bukkit.Difficulty;
++import org.bukkit.GameRule;
+ import org.bukkit.Location;
+ import org.bukkit.Material;
+ import org.bukkit.World;
+@@ -259,12 +260,12 @@ class Config implements Listener
+ 				monde.setDifficulty(Difficulty.PEACEFUL);
+ 				monde.setTime(6000);
+ 				monde.setStorm(false);
+-				monde.setGameRuleValue("doDaylightCycle", "false");
+-				monde.setGameRuleValue("doFireTick", "false");
+-				monde.setGameRuleValue("doModLoot", "false");
+-				monde.setGameRuleValue("doMobSpawning", "false");
+-				monde.setGameRuleValue("doTileDrops", "false");
+-				monde.setGameRuleValue("mobGriefing", "false");
++				setGameRuleFalse(monde, "DO_DAYLIGHT_CYCLE");
++				setGameRuleFalse(monde, "DO_FIRE_TICK");
++				setGameRuleFalse(monde, "DO_MOB_LOOT");
++				setGameRuleFalse(monde, "DO_MOB_SPAWNING");
++				setGameRuleFalse(monde, "DO_TILE_DROPS");
++				setGameRuleFalse(monde, "MOB_GRIEFING");
+ 			}
+ 		}
+ 		else
+@@ -608,6 +609,16 @@ class Config implements Listener
+ 		}
+ 	}
+ 
++	@SuppressWarnings({ "unchecked", "rawtypes" })
++	private static void setGameRuleFalse(World world, String ruleName)
++	{
++		GameRule rule = GameRule.getByName(ruleName);
++		if (rule != null)
++		{
++			world.setGameRule(rule, false);
++		}
++	}
++
+ 	private static BaseComponent[] boutonNext(EtapeConfig etape)
+ 	{
+ 		return new ComponentBuilder(" ➥ ").color(ChatColor.YELLOW)
+@@ -630,12 +641,12 @@ class Config implements Listener
+ 			monde.setDifficulty(Difficulty.PEACEFUL);
+ 			monde.setTime(6000);
+ 			monde.setStorm(false);
+-			monde.setGameRuleValue("doDaylightCycle", "false");
+-			monde.setGameRuleValue("doFireTick", "false");
+-			monde.setGameRuleValue("doModLoot", "false");
+-			monde.setGameRuleValue("doMobSpawning", "false");
+-			monde.setGameRuleValue("doTileDrops", "false");
+-			monde.setGameRuleValue("mobGriefing", "false");
++			setGameRuleFalse(monde, "DO_DAYLIGHT_CYCLE");
++			setGameRuleFalse(monde, "DO_FIRE_TICK");
++			setGameRuleFalse(monde, "DO_MOB_LOOT");
++			setGameRuleFalse(monde, "DO_MOB_SPAWNING");
++			setGameRuleFalse(monde, "DO_TILE_DROPS");
++			setGameRuleFalse(monde, "MOB_GRIEFING");
+ 			monde.setSpawnLocation(0, 4, 0);
+ 
+ 			updateConfig("map storage.map storage world", "CreativeParkourMaps");
+diff --git a/src/main/java/net/creativeparkour/Joueur.java b/src/main/java/net/creativeparkour/Joueur.java
+index ca22068..20c311b 100644
+--- a/src/main/java/net/creativeparkour/Joueur.java
++++ b/src/main/java/net/creativeparkour/Joueur.java
+@@ -209,7 +209,7 @@ class Joueur
+ 			items.add(item);
+ 			ItemMeta im = item.getItemMeta();
+ 			im.setDisplayName(ChatColor.YELLOW + "" + ChatColor.BOLD + Langues.getMessage("creation.items.worldedit wand"));
+-			im.addEnchant(Enchantment.DIG_SPEED, 10, true);
++			im.addEnchant(Enchantment.EFFICIENCY, 10, true);
+ 			item.setItemMeta(im);
+ 		}
+ 		items.add(new ItemStack(Material.OAK_SIGN));
+diff --git a/src/main/java/net/creativeparkour/RewardManager.java b/src/main/java/net/creativeparkour/RewardManager.java
+index e9f82db..e58d2e4 100644
+--- a/src/main/java/net/creativeparkour/RewardManager.java
++++ b/src/main/java/net/creativeparkour/RewardManager.java
+@@ -56,8 +56,8 @@ class RewardManager implements Listener
+ 			config.set("example1.itemname", Material.IRON_HELMET.name());
+ 			config.set("example1.itemdata", 0);
+ 			List<String> liste = new ArrayList<String>();
+-			liste.add(Enchantment.OXYGEN.getName() + ":1");
+-			liste.add(Enchantment.DURABILITY.getName() + ":2");
++			liste.add(Enchantment.RESPIRATION.getName() + ":1");
++			liste.add(Enchantment.UNBREAKING.getName() + ":2");
+ 			config.set("example1.itemenchants", liste);
+ 			// XP
+ 			config.set("example2.type", "XP");
+-- 
+2.43.0
+

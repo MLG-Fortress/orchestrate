@@ -1,0 +1,74 @@
+From 34aebdb6063ea1760e2d6ac1090ec9ca566c4a85 Mon Sep 17 00:00:00 2001
+From: Serbur <19244210+MLG-SERBUR@users.noreply.github.com>
+Date: Tue, 21 Apr 2026 01:45:09 +0000
+Subject: [PATCH] Update server API dependencies and fix build compatibility
+
+---
+ pom.xml                                                | 10 +++++-----
+ src/main/java/me/ryanhamshire/GraviTree/GraviTree.java |  6 +++---
+ 2 files changed, 8 insertions(+), 8 deletions(-)
+
+diff --git a/pom.xml b/pom.xml
+index 8b1c00e..1731342 100644
+--- a/pom.xml
++++ b/pom.xml
+@@ -60,20 +60,20 @@
+        </repository>
+        <repository>
+            <id>bstats-repo</id>
+-           <url>http://repo.bstats.org/content/repositories/releases/</url>
++           <url>https://repo.codemc.org/repository/maven-public/</url>
+        </repository>
+    </repositories>
+    <dependencies>
+     <dependency>
+-      <groupId>org.bukkit</groupId>
+-      <artifactId>bukkit</artifactId>
+-      <version>1.13.1-R0.1-SNAPSHOT</version>
++      <groupId>org.spigotmc</groupId>
++      <artifactId>spigot-api</artifactId>
++      <version>26.1.1-R0.1-SNAPSHOT</version>
+       <scope>provided</scope>
+     </dependency>
+     <dependency>
+        <groupId>org.bstats</groupId>
+        <artifactId>bstats-bukkit</artifactId>
+-       <version>1.2</version>
++       <version>1.8</version>
+        <scope>compile</scope>
+     </dependency>
+ </dependencies>
+diff --git a/src/main/java/me/ryanhamshire/GraviTree/GraviTree.java b/src/main/java/me/ryanhamshire/GraviTree/GraviTree.java
+index 38075c6..d5b5ddb 100644
+--- a/src/main/java/me/ryanhamshire/GraviTree/GraviTree.java
++++ b/src/main/java/me/ryanhamshire/GraviTree/GraviTree.java
+@@ -112,7 +112,7 @@ public class GraviTree extends JavaPlugin implements Listener
+ 
+         try
+         {
+-            new Metrics(this);
++            new Metrics(this, 24740);
+         }
+         catch (Throwable ignored){}
+ 	}
+@@ -341,7 +341,7 @@ public class GraviTree extends JavaPlugin implements Listener
+     private boolean blockIsRootType(Block block)
+     {
+         Material type = block.getType();
+-        if(type == Material.DIRT || type == Material.GRASS || type == Material.STONE || type == Material.COBBLESTONE || ExtraTags.TERRACOTTA.isTagged(type) || type == Material.SAND)
++        if(type == Material.DIRT || type == Material.GRASS_BLOCK || type == Material.STONE || type == Material.COBBLESTONE || ExtraTags.TERRACOTTA.isTagged(type) || type == Material.SAND)
+         {
+             return true;
+         }
+@@ -397,7 +397,7 @@ public class GraviTree extends JavaPlugin implements Listener
+     static boolean blockIsTreeAdjacent(Block block)
+     {
+         Material type = block.getType();
+-        if(Tag.LEAVES.isTagged(type) || type == Material.AIR || type == Material.VINE || type == Material.COCOA || type == Material.TORCH || type == Material.SNOW || type == Material.GRASS || type == Material.DIRT || type == Material.STONE || type == Material.COBBLESTONE || type == Material.TALL_GRASS)
++        if(Tag.LEAVES.isTagged(type) || type == Material.AIR || type == Material.VINE || type == Material.COCOA || type == Material.TORCH || type == Material.SNOW || type == Material.GRASS_BLOCK || type == Material.DIRT || type == Material.STONE || type == Material.COBBLESTONE || type == Material.TALL_GRASS)
+         {
+             return true;
+         }
+-- 
+2.43.0
+
