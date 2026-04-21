@@ -1,0 +1,29 @@
+From d5052369dc8f879846b7a7c94937ae9649449179 Mon Sep 17 00:00:00 2001
+From: Serbur <19244210+MLG-SERBUR@users.noreply.github.com>
+Date: Mon, 20 Apr 2026 23:57:00 +0000
+Subject: [PATCH] Fix startup/config compatibility issues
+
+---
+ .../com/robomwm/CapturePointClaims/CapturePointClaims.java  | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/src/main/java/com/robomwm/CapturePointClaims/CapturePointClaims.java b/src/main/java/com/robomwm/CapturePointClaims/CapturePointClaims.java
+index 213f01a..5909501 100644
+--- a/src/main/java/com/robomwm/CapturePointClaims/CapturePointClaims.java
++++ b/src/main/java/com/robomwm/CapturePointClaims/CapturePointClaims.java
+@@ -59,6 +59,12 @@ public class CapturePointClaims extends JavaPlugin implements Listener
+ 
+         for (World world : getServer().getWorlds())
+         {
++            if (world == null)
++            {
++                getLogger().warning("Encountered a null world while building claim worlds. Skipping.");
++                continue;
++            }
++
+             if (world.getPVP()
+                 && world.getGameRuleValue(GameRule.DO_DAYLIGHT_CYCLE)
+                 && world.getWorldBorder().getSize() >= 20000)
+-- 
+2.43.0
+
