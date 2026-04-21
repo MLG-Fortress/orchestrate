@@ -14,6 +14,22 @@ DEFAULT_BRANCH="${DEFAULT_REMOTE_REF#origin/}"
 
 mapfile -t REMOTE_BRANCHES < <(git for-each-ref --format='%(refname:short)' refs/remotes/origin | sed 's#^origin/##' | grep -v '^HEAD$' | grep -v "^${DEFAULT_BRANCH}$")
 
+build_existing_patch_id_index() {
+  local repo_path="$1"
+  local branch="$2"
+  local output_path="$3"
+
+  git -C "${repo_path}" log --no-merges --pretty=format:%H -p "${branch}" \
+    | git patch-id --stable \
+    | awk '{print $1}' \
+    | sort -u > "${output_path}"
+}
+
+patch_id_from_file() {
+  local patch_path="$1"
+  git patch-id --stable < "${patch_path}" 2>/dev/null | awk 'NR==1 {print $1}'
+}
+
 if [[ ${#REMOTE_BRANCHES[@]} -eq 0 ]]; then
   echo "No non-default remote branches found."
   exit 0
@@ -85,6 +101,8 @@ for branch in "${REMOTE_BRANCHES[@]}"; do
 
     echo "Evaluating ${#patches[@]} patch(es) for ${source_repo}:${source_default_branch}"
     start_head="$(git -C "${clone_path}" rev-parse HEAD)"
+    existing_patch_ids="$(mktemp)"
+    build_existing_patch_id_index "${clone_path}" "${source_default_branch}" "${existing_patch_ids}"
 
     applied_count=0
     skipped_count=0
@@ -102,14 +120,19 @@ for branch in "${REMOTE_BRANCHES[@]}"; do
       elif git -C "${clone_path}" apply --reverse --check "${patch}" >/dev/null 2>&1; then
         echo "Skipping already-applied patch $(basename "${patch}")"
         ((skipped_count+=1))
+      elif patch_id="$(patch_id_from_file "${patch}")" && [[ -n "${patch_id}" ]] && grep -Fxq "${patch_id}" "${existing_patch_ids}"; then
+        echo "Skipping already-applied patch by patch-id $(basename "${patch}")"
+        ((skipped_count+=1))
       else
         echo "Patch $(basename "${patch}") does not apply cleanly and is not already applied."
         echo "Leaving repo unchanged for manual inspection."
+        rm -f "${existing_patch_ids}"
         exit 1
       fi
     done
 
     end_head="$(git -C "${clone_path}" rev-parse HEAD)"
+    rm -f "${existing_patch_ids}"
     echo "Applied: ${applied_count}, skipped: ${skipped_count}"
 
     if [[ "${start_head}" != "${end_head}" ]]; then
