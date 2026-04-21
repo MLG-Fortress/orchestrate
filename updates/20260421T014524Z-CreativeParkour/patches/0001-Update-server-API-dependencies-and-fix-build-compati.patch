@@ -1,213 +1,86 @@
-From 45f4d7d7feb33e7b6196d85efd74df44d48bbbe3 Mon Sep 17 00:00:00 2001
+From eb3d10d4d948b523da245ad97b38693db281b37e Mon Sep 17 00:00:00 2001
 From: Serbur <19244210+MLG-SERBUR@users.noreply.github.com>
-Date: Tue, 21 Apr 2026 01:45:09 +0000
+Date: Tue, 21 Apr 2026 01:56:07 +0000
 Subject: [PATCH] Update server API dependencies and fix build compatibility
 
 ---
- pom.xml                                       | 177 +++++++++---------
- .../packetwrapper/AbstractPacket.java         |  10 +-
- .../java/net/creativeparkour/BlocEffet.java   |  12 +-
- src/main/java/net/creativeparkour/Config.java |  36 ++--
- src/main/java/net/creativeparkour/Joueur.java |   2 +-
- .../net/creativeparkour/RewardManager.java    |   4 +-
- 6 files changed, 126 insertions(+), 115 deletions(-)
+ pom.xml                                       | 17 ++++++---
+ .../packetwrapper/AbstractPacket.java         | 10 ++---
+ .../java/net/creativeparkour/BlocEffet.java   | 12 +++---
+ src/main/java/net/creativeparkour/Config.java | 37 ++++++++++++-------
+ src/main/java/net/creativeparkour/Joueur.java |  2 +-
+ .../net/creativeparkour/RewardManager.java    |  4 +-
+ 6 files changed, 49 insertions(+), 33 deletions(-)
 
 diff --git a/pom.xml b/pom.xml
-index dcfbf57..804668b 100644
+index dcfbf57..831831c 100644
 --- a/pom.xml
 +++ b/pom.xml
-@@ -1,88 +1,89 @@
--<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
--	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
--	<modelVersion>4.0.0</modelVersion>
--	<groupId>CreativeParkour</groupId>
--	<artifactId>CreativeParkour</artifactId>
--	<version>2.11.9</version>
--	<name>CreativeParkour</name>
--	<description>Bukkit parkour plugin that allows all the players to play and show their skills in fun parkour maps they build or download!</description>
--	<properties>
--        	<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
--        	<maven.compiler.source>1.8</maven.compiler.source>
--         	<maven.compiler.target>1.8</maven.compiler.target>
--        </properties>
--	<build>
--		<finalName>${project.name}</finalName>
--		<resources>
--			<resource>
--				<directory>${basedir}/src/main/resources</directory>
--				<filtering>true</filtering>
--			</resource>
--		</resources>
--		<plugins>
--			<plugin>
--				<artifactId>maven-compiler-plugin</artifactId>
--				<version>3.5.1</version>
--				<configuration>
--					<source>1.8</source>
--					<target>1.8</target>
--				</configuration>
--			</plugin>
--		</plugins>
--	</build>
--	<repositories>
--		<repository>
--			<id>spigot-repo</id>
--			<url>https://hub.spigotmc.org/nexus/content/repositories/snapshots/</url>
--		</repository>
--		<repository>
--			<id>sk89q-repo</id>
+@@ -37,7 +37,7 @@
+ 		</repository>
+ 		<repository>
+ 			<id>sk89q-repo</id>
 -			<url>https://maven.sk89q.com/repo/</url>
--		</repository>
--		<repository>
--			<id>jitpack.io</id>
--			<url>https://jitpack.io</url>
--		</repository>
--		<repository>
--			<id>dmulloy2-repo</id>
--			<url>https://repo.dmulloy2.net/nexus/repository/public/</url>
--		</repository>
--	</repositories>
--	<dependencies>
--		<!--Spigot API -->
--		<dependency>
--			<groupId>org.spigotmc</groupId>
--			<artifactId>spigot-api</artifactId>
--			<version>1.18.1-R0.1-SNAPSHOT</version>
--			<scope>provided</scope>
--		</dependency>
--		<!--Bukkit API -->
--		<!--<dependency>
--			<groupId>org.bukkit</groupId>
--			<artifactId>bukkit</artifactId>
--			<version>1.16.1-R0.1-SNAPSHOT</version>
--			<scope>provided</scope>
--		</dependency> -->
--		<!-- WorldEdit -->
--		<dependency>
--			<groupId>com.sk89q.worldedit</groupId>
--			<artifactId>worldedit-bukkit</artifactId>
--			<version>7.2.5</version>
--			<scope>provided</scope>
--		</dependency>
--		<!-- Vault -->
--		<dependency>
--			<groupId>net.milkbowl.vault</groupId>
--			<artifactId>VaultAPI</artifactId>
--			<version>1.7</version>
--			<scope>provided</scope>
--		</dependency>
--		<!-- ProtocolLib -->
--		<dependency>
--			<groupId>com.comphenix.protocol</groupId>
--			<artifactId>ProtocolLib</artifactId>
--			<version>4.7.0</version>
--		</dependency>
--	</dependencies>
--	<url>https://creativeparkour.net</url>
--</project>
-+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-+	<modelVersion>4.0.0</modelVersion>
-+	<groupId>CreativeParkour</groupId>
-+	<artifactId>CreativeParkour</artifactId>
-+	<version>2.11.9</version>
-+	<name>CreativeParkour</name>
-+	<description>Bukkit parkour plugin that allows all the players to play and show their skills in fun parkour maps they build or download!</description>
-+	<properties>
-+        	<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-+        	<maven.compiler.source>1.8</maven.compiler.source>
-+         	<maven.compiler.target>1.8</maven.compiler.target>
-+        </properties>
-+	<build>
-+		<finalName>${project.name}</finalName>
-+		<resources>
-+			<resource>
-+				<directory>${basedir}/src/main/resources</directory>
-+				<filtering>true</filtering>
-+			</resource>
-+		</resources>
-+		<plugins>
-+			<plugin>
-+				<artifactId>maven-compiler-plugin</artifactId>
-+				<version>3.5.1</version>
-+				<configuration>
-+					<source>1.8</source>
-+					<target>1.8</target>
-+				</configuration>
-+			</plugin>
-+		</plugins>
-+	</build>
-+	<repositories>
-+		<repository>
-+			<id>spigot-repo</id>
-+			<url>https://hub.spigotmc.org/nexus/content/repositories/snapshots/</url>
-+		</repository>
-+		<repository>
-+			<id>sk89q-repo</id>
 +			<url>https://maven.enginehub.org/repo/</url>
-+		</repository>
-+		<repository>
-+			<id>jitpack.io</id>
-+			<url>https://jitpack.io</url>
-+		</repository>
-+	</repositories>
-+	<dependencies>
-+		<!--Spigot API -->
-+		<dependency>
-+			<groupId>org.spigotmc</groupId>
-+			<artifactId>spigot-api</artifactId>
+ 		</repository>
+ 		<repository>
+ 			<id>jitpack.io</id>
+@@ -53,7 +53,7 @@
+ 		<dependency>
+ 			<groupId>org.spigotmc</groupId>
+ 			<artifactId>spigot-api</artifactId>
+-			<version>1.18.1-R0.1-SNAPSHOT</version>
 +			<version>26.1.1-R0.1-SNAPSHOT</version>
-+			<scope>provided</scope>
-+		</dependency>
-+		<!--Bukkit API -->
-+		<!--<dependency>
-+			<groupId>org.bukkit</groupId>
-+			<artifactId>bukkit</artifactId>
-+			<version>1.16.1-R0.1-SNAPSHOT</version>
-+			<scope>provided</scope>
-+		</dependency> -->
+ 			<scope>provided</scope>
+ 		</dependency>
+ 		<!--Bukkit API -->
+@@ -63,6 +63,11 @@
+ 			<version>1.16.1-R0.1-SNAPSHOT</version>
+ 			<scope>provided</scope>
+ 		</dependency> -->
 +		<dependency>
 +			<groupId>commons-lang</groupId>
 +			<artifactId>commons-lang</artifactId>
 +			<version>2.6</version>
 +		</dependency>
-+		<!-- WorldEdit -->
-+		<dependency>
-+			<groupId>com.sk89q.worldedit</groupId>
-+			<artifactId>worldedit-bukkit</artifactId>
-+			<version>7.2.5</version>
-+			<scope>provided</scope>
-+		</dependency>
-+		<!-- Vault -->
-+		<dependency>
+ 		<!-- WorldEdit -->
+ 		<dependency>
+ 			<groupId>com.sk89q.worldedit</groupId>
+@@ -72,16 +77,16 @@
+ 		</dependency>
+ 		<!-- Vault -->
+ 		<dependency>
+-			<groupId>net.milkbowl.vault</groupId>
 +			<groupId>com.github.MilkBowl</groupId>
-+			<artifactId>VaultAPI</artifactId>
+ 			<artifactId>VaultAPI</artifactId>
+-			<version>1.7</version>
 +			<version>1.7.1</version>
-+			<scope>provided</scope>
-+		</dependency>
-+		<!-- ProtocolLib -->
-+		<dependency>
+ 			<scope>provided</scope>
+ 		</dependency>
+ 		<!-- ProtocolLib -->
+ 		<dependency>
+-			<groupId>com.comphenix.protocol</groupId>
 +			<groupId>com.github.dmulloy2</groupId>
-+			<artifactId>ProtocolLib</artifactId>
+ 			<artifactId>ProtocolLib</artifactId>
+-			<version>4.7.0</version>
 +			<version>5.3.0</version>
-+		</dependency>
-+	</dependencies>
-+	<url>https://creativeparkour.net</url>
-+</project>
+ 		</dependency>
+ 	</dependencies>
+ 	<url>https://creativeparkour.net</url>
 diff --git a/src/main/java/com/comphenix/packetwrapper/AbstractPacket.java b/src/main/java/com/comphenix/packetwrapper/AbstractPacket.java
-index 88fc4b9..6ad59cd 100644
+index 88fc4b9..68bccc1 100644
 --- a/src/main/java/com/comphenix/packetwrapper/AbstractPacket.java
 +++ b/src/main/java/com/comphenix/packetwrapper/AbstractPacket.java
-@@ -18,8 +18,6 @@
+@@ -18,7 +18,7 @@
   */
  package com.comphenix.packetwrapper;
  
 -import java.lang.reflect.InvocationTargetException;
--
++
+ 
  import org.bukkit.entity.Player;
  
- import com.comphenix.protocol.PacketType;
-@@ -67,7 +65,7 @@ public abstract class AbstractPacket {
+@@ -67,7 +67,7 @@ public abstract class AbstractPacket {
  		try {
  			ProtocolLibrary.getProtocolManager().sendServerPacket(receiver,
  					getHandle());
@@ -216,7 +89,7 @@ index 88fc4b9..6ad59cd 100644
  			throw new RuntimeException("Cannot send packet.", e);
  		}
  	}
-@@ -90,10 +88,10 @@ public abstract class AbstractPacket {
+@@ -90,10 +90,10 @@ public abstract class AbstractPacket {
  	@Deprecated
  	public void recievePacket(Player sender) {
  		try {
@@ -229,7 +102,7 @@ index 88fc4b9..6ad59cd 100644
  		}
  	}
  
-@@ -105,7 +103,7 @@ public abstract class AbstractPacket {
+@@ -105,7 +105,7 @@ public abstract class AbstractPacket {
  	 */
  	public void receivePacket(Player sender) {
  		try {
@@ -269,13 +142,15 @@ index 7406899..5b5cd10 100644
  		p.removePotionEffect(PotionEffectType.NIGHT_VISION);
  		try {
 diff --git a/src/main/java/net/creativeparkour/Config.java b/src/main/java/net/creativeparkour/Config.java
-index a2fc6e3..21fe4eb 100644
+index a2fc6e3..f296158 100644
 --- a/src/main/java/net/creativeparkour/Config.java
 +++ b/src/main/java/net/creativeparkour/Config.java
-@@ -32,6 +32,7 @@ import java.util.UUID;
+@@ -31,7 +31,8 @@ import java.util.Set;
+ import java.util.UUID;
  
  import org.bukkit.Bukkit;
- import org.bukkit.Difficulty;
+-import org.bukkit.Difficulty;
++import org.bukkit.Difficulty;
 +import org.bukkit.GameRule;
  import org.bukkit.Location;
  import org.bukkit.Material;
@@ -299,11 +174,10 @@ index a2fc6e3..21fe4eb 100644
  			}
  		}
  		else
-@@ -608,6 +609,17 @@ class Config implements Listener
+@@ -608,6 +609,16 @@ class Config implements Listener
  		}
  	}
  
-+
 +	@SuppressWarnings({ "unchecked", "rawtypes" })
 +	private static void setGameRuleFalse(World world, String ruleName)
 +	{
@@ -317,7 +191,7 @@ index a2fc6e3..21fe4eb 100644
  	private static BaseComponent[] boutonNext(EtapeConfig etape)
  	{
  		return new ComponentBuilder(" ➥ ").color(ChatColor.YELLOW)
-@@ -630,12 +642,12 @@ class Config implements Listener
+@@ -630,12 +641,12 @@ class Config implements Listener
  			monde.setDifficulty(Difficulty.PEACEFUL);
  			monde.setTime(6000);
  			monde.setStorm(false);
