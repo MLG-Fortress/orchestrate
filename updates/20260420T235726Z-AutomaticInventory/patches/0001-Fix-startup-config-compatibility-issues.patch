@@ -1,0 +1,66 @@
+From 8deae50fbea60dfcbb53b8b23f1a4bd14f9edd5e Mon Sep 17 00:00:00 2001
+From: Serbur <19244210+MLG-SERBUR@users.noreply.github.com>
+Date: Mon, 20 Apr 2026 23:57:01 +0000
+Subject: [PATCH] Fix startup/config compatibility issues
+
+---
+ .../AutomaticInventory.java                   | 29 +++++++++++++++++--
+ 1 file changed, 27 insertions(+), 2 deletions(-)
+
+diff --git a/src/me/ryanhamshire/AutomaticInventory/AutomaticInventory.java b/src/me/ryanhamshire/AutomaticInventory/AutomaticInventory.java
+index 491031f..b544526 100644
+--- a/src/me/ryanhamshire/AutomaticInventory/AutomaticInventory.java
++++ b/src/me/ryanhamshire/AutomaticInventory/AutomaticInventory.java
+@@ -72,7 +72,7 @@ public class AutomaticInventory extends JavaPlugin
+         
+         for(String idString : noAutoRefillIDs_string)
+         {
+-            Material material = Material.matchMaterial(idString.toUpperCase());
++            Material material = parseMaterial(idString);
+             if (material == null)
+                 getLogger().warning(idString + " is not a valid material");
+             else
+@@ -92,7 +92,7 @@ public class AutomaticInventory extends JavaPlugin
+         
+         for(String idString : noAutoDepositIDs_string)
+         {
+-            Material material = Material.matchMaterial(idString.toUpperCase());
++            Material material = parseMaterial(idString);
+             if (material == null)
+                 getLogger().warning(idString + " is not a valid material");
+             else
+@@ -256,6 +256,31 @@ public class AutomaticInventory extends JavaPlugin
+ 		return false;
+ 	}
+ 
++    private Material parseMaterial(String idString)
++    {
++        Material material = Material.matchMaterial(idString.toUpperCase());
++        if (material != null)
++            return material;
++
++        try
++        {
++            int legacyId = Integer.parseInt(idString);
++            switch (legacyId)
++            {
++                case 0:
++                    return Material.AIR;
++                case 373:
++                    return Material.POTION;
++                default:
++                    return null;
++            }
++        }
++        catch (NumberFormatException ignored)
++        {
++            return null;
++        }
++    }
++
+     void DeliverTutorialHyperlink(Player player)
+     {
+         //todo: deliver tutorial link to player
+-- 
+2.43.0
+

@@ -1,0 +1,31 @@
+From 92b8165740d94c50446f5f6c2ec09a2839ef1168 Mon Sep 17 00:00:00 2001
+From: Serbur <19244210+MLG-SERBUR@users.noreply.github.com>
+Date: Mon, 20 Apr 2026 23:57:00 +0000
+Subject: [PATCH] Fix startup/config compatibility issues
+
+---
+ .../java/com/robomwm/customitemregistry/CustomItems.java  | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
+
+diff --git a/src/main/java/com/robomwm/customitemregistry/CustomItems.java b/src/main/java/com/robomwm/customitemregistry/CustomItems.java
+index 5454c57..20c6174 100644
+--- a/src/main/java/com/robomwm/customitemregistry/CustomItems.java
++++ b/src/main/java/com/robomwm/customitemregistry/CustomItems.java
+@@ -55,7 +55,13 @@ class CustomItems implements CommandExecutor
+         {
+             try
+             {
+-                customItemRegistry.registerItem((ItemStack)itemsYaml.get(itemString), itemString);
++                ItemStack itemStack = itemsYaml.getItemStack(itemString);
++                if (itemStack == null)
++                {
++                    customItemRegistry.getLogger().warning("Failed to load item " + itemString + " due to invalid or legacy config data.");
++                    continue;
++                }
++                customItemRegistry.registerItem(itemStack, itemString);
+             }
+             catch (Throwable rock)
+             {
+-- 
+2.43.0
+
