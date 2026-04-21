@@ -1,0 +1,89 @@
+From 0ae7c0b56ea5faeb8157070952b661be9bf859a2 Mon Sep 17 00:00:00 2001
+From: Serbur <19244210+MLG-SERBUR@users.noreply.github.com>
+Date: Tue, 21 Apr 2026 01:03:26 +0000
+Subject: [PATCH] Update platform API to 26.1.2 and fix compile
+
+---
+ pom.xml                                                   | 6 +++---
+ .../WellTypes/Dinnerbone/DinnerboneMoonWell.java          | 8 ++++----
+ .../WellWorld/WellTypes/StandardWellArchetype.java        | 2 +-
+ .../daddychurchill/WellWorld/WellWorldBlockPopulator.java | 2 +-
+ 4 files changed, 9 insertions(+), 9 deletions(-)
+
+diff --git a/pom.xml b/pom.xml
+index 48009ba..aab3889 100644
+--- a/pom.xml
++++ b/pom.xml
+@@ -15,7 +15,7 @@
+     <repositories>
+         <repository>
+             <id>paper-repo</id>
+-            <url>https://repo.destroystokyo.com/repository/maven-public/</url>
++            <url>https://repo.papermc.io/repository/maven-public/</url>
+         </repository>
+     </repositories>
+     <build>
+@@ -39,9 +39,9 @@
+     </build>
+     <dependencies>
+         <dependency>
+-                <groupId>com.destroystokyo.paper</groupId>
++                <groupId>io.papermc.paper</groupId>
+                 <artifactId>paper-api</artifactId>
+-                <version>1.13.1-R0.1-SNAPSHOT</version>
++                <version>26.1.2.build.18-alpha</version>
+                 <scope>provided</scope>
+         </dependency>
+     </dependencies>
+diff --git a/src/me/daddychurchill/WellWorld/WellTypes/Dinnerbone/DinnerboneMoonWell.java b/src/me/daddychurchill/WellWorld/WellTypes/Dinnerbone/DinnerboneMoonWell.java
+index 3fc7984..7d2d3e6 100644
+--- a/src/me/daddychurchill/WellWorld/WellTypes/Dinnerbone/DinnerboneMoonWell.java
++++ b/src/me/daddychurchill/WellWorld/WellTypes/Dinnerbone/DinnerboneMoonWell.java
+@@ -140,14 +140,14 @@ public class DinnerboneMoonWell extends WellArchetype {
+             //EC: for some reason, sometimes the relative block is not a fence post... maybe it is a Minecraft/Bukkit issue
+ 			Block signBlock = top.getRelative(direction);
+ 			if (signBlock.getType() == Material.BIRCH_FENCE) {
+-				signBlock.setType(Material.WALL_SIGN);
++				signBlock.setType(Material.OAK_WALL_SIGN);
+ 	            BlockState state = signBlock.getState();
+ 	
+ 	            if (state instanceof Sign) {
+ 	                Sign sign = (Sign)state;
+-	                org.bukkit.material.Sign data = (org.bukkit.material.Sign)state.getData();
+-	
+-	                data.setFacingDirection(direction);
++	                org.bukkit.block.data.type.WallSign data = (org.bukkit.block.data.type.WallSign) sign.getBlockData();
++	                data.setFacing(direction);
++	                sign.setBlockData(data);
+ 	                sign.setLine(0, "---------|*****");
+ 	                sign.setLine(1, "---------|*****");
+ 	                sign.setLine(2, "-------------");
+diff --git a/src/me/daddychurchill/WellWorld/WellTypes/StandardWellArchetype.java b/src/me/daddychurchill/WellWorld/WellTypes/StandardWellArchetype.java
+index 6103c52..5d51236 100644
+--- a/src/me/daddychurchill/WellWorld/WellTypes/StandardWellArchetype.java
++++ b/src/me/daddychurchill/WellWorld/WellTypes/StandardWellArchetype.java
+@@ -67,7 +67,7 @@ public abstract class StandardWellArchetype extends WellArchetype {
+ 		materialTop = Material.GRASS_BLOCK;
+ 		materialLiquidBase = Material.SAND;
+ 		materialLiquid = Material.WATER;
+-		materialBlades = Material.GRASS;
++		materialBlades = Material.SHORT_GRASS;
+ 		materialFlower = random.nextBoolean() ? Material.POPPY : Material.DANDELION;
+ 		
+ 		materialMineral = materialBottom;
+diff --git a/src/me/daddychurchill/WellWorld/WellWorldBlockPopulator.java b/src/me/daddychurchill/WellWorld/WellWorldBlockPopulator.java
+index 749146e..a71dbbc 100644
+--- a/src/me/daddychurchill/WellWorld/WellWorldBlockPopulator.java
++++ b/src/me/daddychurchill/WellWorld/WellWorldBlockPopulator.java
+@@ -57,7 +57,7 @@ public class WellWorldBlockPopulator extends BlockPopulator {
+ 					int y = WellWorldChunkGenerator.wallHeightInBlocks;
+ 					int z = 0;
+ 					Block block = source.getBlock(x, y, z);
+-					block.setType(Material.SIGN);
++					block.setType(Material.OAK_SIGN);
+ 					
+ 					BlockData data = block.getBlockData();
+ 					if (data instanceof org.bukkit.block.data.type.Sign) {
+-- 
+2.43.0
+

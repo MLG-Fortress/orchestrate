@@ -1,0 +1,84 @@
+From 562ca17ef67060ac694b138cf204eec58d313d6e Mon Sep 17 00:00:00 2001
+From: Serbur <19244210+MLG-SERBUR@users.noreply.github.com>
+Date: Tue, 21 Apr 2026 01:03:27 +0000
+Subject: [PATCH] Update platform API to 26.1.2 and fix compile
+
+---
+ pom.xml                                            | 14 ++++++++++----
+ .../to/us/tf/PortalEntities/PortalEntities.java    |  6 +++---
+ 2 files changed, 13 insertions(+), 7 deletions(-)
+
+diff --git a/pom.xml b/pom.xml
+index d58945c..721652a 100644
+--- a/pom.xml
++++ b/pom.xml
+@@ -14,7 +14,7 @@
+     <repositories>
+         <repository>
+             <id>paper-repo</id>
+-            <url>https://repo.destroystokyo.com/repository/maven-public/</url>
++            <url>https://repo.papermc.io/repository/maven-public/</url>
+         </repository>
+         <repository>
+             <id>jitpack.io</id>
+@@ -35,16 +35,22 @@
+     </build>
+     <dependencies>
+         <dependency>
+-            <groupId>com.destroystokyo.paper</groupId>
++            <groupId>io.papermc.paper</groupId>
+             <artifactId>paper-api</artifactId>
+-            <version>1.13.2-R0.1-SNAPSHOT</version>
++            <version>26.1.2.build.18-alpha</version>
+             <scope>provided</scope>
+         </dependency>
+         <dependency>
+             <groupId>com.github.MLG-Fortress</groupId>
+             <artifactId>portalStick</artifactId>
+             <version>5.7</version>
++            <exclusions>
++                <exclusion>
++                    <groupId>com.sk89q</groupId>
++                    <artifactId>worldguard</artifactId>
++                </exclusion>
++            </exclusions>
+         </dependency>
+     </dependencies>
+ 
+-</project>
+\ No newline at end of file
++</project>
+diff --git a/src/main/java/to/us/tf/PortalEntities/PortalEntities.java b/src/main/java/to/us/tf/PortalEntities/PortalEntities.java
+index d17bfb0..c2f192e 100644
+--- a/src/main/java/to/us/tf/PortalEntities/PortalEntities.java
++++ b/src/main/java/to/us/tf/PortalEntities/PortalEntities.java
+@@ -218,7 +218,7 @@ public class PortalEntities extends JavaPlugin implements Listener
+                 {
+                     for (Entity entity : block.getLocation().getChunk().getEntities())
+                     {
+-                        if (entity.getType() == EntityType.PRIMED_TNT)
++                        if (entity.getType() == EntityType.TNT)
+                             smartTrackEntity(entity);
+                     }
+                 }
+@@ -241,7 +241,7 @@ public class PortalEntities extends JavaPlugin implements Listener
+                 {
+                     for (Entity entity : block.getLocation().getChunk().getEntities())
+                     {
+-                        if (entity.getType() == EntityType.PRIMED_TNT)
++                        if (entity.getType() == EntityType.TNT)
+                             smartTrackEntity(entity);
+                     }
+                 }
+@@ -345,7 +345,7 @@ public class PortalEntities extends JavaPlugin implements Listener
+                         vectorIterator.next();
+                         continue;
+                     }
+-                    ParticleBuilder particle = Particle.REDSTONE.builder().color(finalColor);
++                    ParticleBuilder particle = Particle.DUST.builder().color(finalColor);
+                     world.spawnParticle(particle.particle(), vectorIterator.next().toLocation(world), 1, particle.data());
+                     //world.spawnParticle(particle.builder().color(), vectorIterator.next().toLocation(world), 0, r, g, b, 1D); //toLocation can be rewritten async (List of Locations, then schedule sync task for spawnParticle)
+                 }
+-- 
+2.43.0
+

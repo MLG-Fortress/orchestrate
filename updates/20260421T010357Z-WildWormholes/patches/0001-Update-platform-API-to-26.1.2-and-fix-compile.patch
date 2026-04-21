@@ -1,0 +1,37 @@
+From e9b74a900245d1f87c6fca0046b124c182ebc1ff Mon Sep 17 00:00:00 2001
+From: Serbur <19244210+MLG-SERBUR@users.noreply.github.com>
+Date: Tue, 21 Apr 2026 01:03:26 +0000
+Subject: [PATCH] Update platform API to 26.1.2 and fix compile
+
+---
+ pom.xml | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/pom.xml b/pom.xml
+index af11b63..0b553d9 100644
+--- a/pom.xml
++++ b/pom.xml
+@@ -15,7 +15,7 @@
+     <repositories>
+         <repository>
+             <id>paper-repo</id>
+-            <url>https://papermc.io/repo/repository/maven-public/</url>
++            <url>https://repo.papermc.io/repository/maven-public/</url>
+         </repository>
+         <repository>
+             <id>CodeMC</id>
+@@ -71,9 +71,9 @@
+     </build>
+     <dependencies>
+         <dependency>
+-            <groupId>com.destroystokyo.paper</groupId>
++            <groupId>io.papermc.paper</groupId>
+             <artifactId>paper-api</artifactId>
+-            <version>1.13.2-R0.1-SNAPSHOT</version>
++            <version>26.1.2.build.18-alpha</version>
+             <type>jar</type>
+             <scope>provided</scope>
+         </dependency>
+-- 
+2.43.0
+

@@ -1,0 +1,51 @@
+From 50ece0afbcd4634a306201d3a04fe102665a0960 Mon Sep 17 00:00:00 2001
+From: Serbur <19244210+MLG-SERBUR@users.noreply.github.com>
+Date: Tue, 21 Apr 2026 01:03:26 +0000
+Subject: [PATCH] Update platform API to 26.1.2 and fix compile
+
+---
+ pom.xml                                                     | 6 +++---
+ .../com/robomwm/multigenerator/SquareGridGenerator.java     | 2 +-
+ 2 files changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/pom.xml b/pom.xml
+index 370ce72..9c4d406 100644
+--- a/pom.xml
++++ b/pom.xml
+@@ -14,7 +14,7 @@
+     <repositories>
+         <repository>
+             <id>papermc-repo</id>
+-            <url>https://papermc.io/repo/repository/maven-snapshots/</url>
++            <url>https://repo.papermc.io/repository/maven-public/</url>
+         </repository>
+     </repositories>
+     <build>
+@@ -48,9 +48,9 @@
+     </build>
+     <dependencies>
+         <dependency>
+-            <groupId>com.destroystokyo.paper</groupId>
++            <groupId>io.papermc.paper</groupId>
+             <artifactId>paper-api</artifactId>
+-            <version>1.16.4-R0.1-SNAPSHOT</version>
++            <version>26.1.2.build.18-alpha</version>
+             <type>jar</type>
+             <scope>provided</scope>
+         </dependency>
+diff --git a/src/main/java/com/robomwm/multigenerator/SquareGridGenerator.java b/src/main/java/com/robomwm/multigenerator/SquareGridGenerator.java
+index 03a4db9..4c7fa8b 100644
+--- a/src/main/java/com/robomwm/multigenerator/SquareGridGenerator.java
++++ b/src/main/java/com/robomwm/multigenerator/SquareGridGenerator.java
+@@ -144,7 +144,7 @@ public class SquareGridGenerator extends ChunkGenerator
+         if (generator != null)
+             return generator.generateChunkData(world, random, x, z, biome);
+ 
+-        return super.createVanillaChunkData(world, x, z);
++        return super.createChunkData(world);
+     }
+ 
+     @Override
+-- 
+2.43.0
+

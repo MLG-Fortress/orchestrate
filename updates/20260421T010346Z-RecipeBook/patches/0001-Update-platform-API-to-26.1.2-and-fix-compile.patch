@@ -1,0 +1,125 @@
+From 93e62709eb635dde9c8ad599edcdf6b4be224946 Mon Sep 17 00:00:00 2001
+From: Serbur <19244210+MLG-SERBUR@users.noreply.github.com>
+Date: Tue, 21 Apr 2026 01:03:26 +0000
+Subject: [PATCH] Update platform API to 26.1.2 and fix compile
+
+---
+ pom.xml                                       | 22 +++++--------------
+ .../java/com/robomwm/recipebook/LazyText.java |  3 +--
+ .../recipebook/RecipeBookSearchCommand.java   |  3 +--
+ 3 files changed, 8 insertions(+), 20 deletions(-)
+
+diff --git a/pom.xml b/pom.xml
+index c0808a2..d7c9268 100644
+--- a/pom.xml
++++ b/pom.xml
+@@ -15,7 +15,7 @@
+     <repositories>
+         <repository>
+             <id>paper-repo</id>
+-            <url>https://repo.destroystokyo.com/repository/maven-public/</url>
++            <url>https://repo.papermc.io/repository/maven-public/</url>
+         </repository>
+         <repository>
+             <id>CodeMC</id>
+@@ -25,10 +25,6 @@
+             <id>jitpack.io</id>
+             <url>https://jitpack.io</url>
+         </repository>
+-        <repository>
+-            <id>valaria</id>
+-            <url>https://repo.valaria.pw/repository/maven-public/</url>
+-        </repository>
+     </repositories>
+     <build>
+         <finalName>${project.name}</finalName>
+@@ -52,7 +48,6 @@
+                         <includes>
+                             <include>org.bstats:bstats-bukkit</include>
+                             <include>com.github.RoboMWM:UsefulUtil</include>
+-                            <include>pw.valaria:bookutil</include>
+                         </includes>
+                     </artifactSet>
+                     <relocations>
+@@ -64,10 +59,6 @@
+                             <pattern>com.robomwm.usefulutil</pattern>
+                             <shadedPattern>com.robomwm.customitemrecipes.usefulutil</shadedPattern>
+                         </relocation>
+-                        <relocation>
+-                            <pattern>pw.valaria.bookutil</pattern>
+-                            <shadedPattern>com.robomwm.prettysimpleshop</shadedPattern>
+-                        </relocation>
+                     </relocations>
+                 </configuration>
+                 <executions>
+@@ -98,9 +89,9 @@
+     </build>
+     <dependencies>
+         <dependency>
+-            <groupId>com.destroystokyo.paper</groupId>
++            <groupId>io.papermc.paper</groupId>
+             <artifactId>paper-api</artifactId>
+-            <version>1.13.2-R0.1-SNAPSHOT</version>
++            <version>26.1.2.build.18-alpha</version>
+             <scope>provided</scope>
+         </dependency>
+         <dependency>
+@@ -121,10 +112,9 @@
+             <scope>compile</scope>
+         </dependency>
+         <dependency>
+-            <groupId>pw.valaria</groupId>
+-            <artifactId>bookutil</artifactId>
+-            <version>1.2-SNAPSHOT</version>
+-            <scope>compile</scope>
++            <groupId>commons-lang</groupId>
++            <artifactId>commons-lang</artifactId>
++            <version>2.6</version>
+         </dependency>
+         <dependency>
+             <groupId>org.apache.commons</groupId>
+diff --git a/src/main/java/com/robomwm/recipebook/LazyText.java b/src/main/java/com/robomwm/recipebook/LazyText.java
+index 2b36de4..cb679ce 100644
+--- a/src/main/java/com/robomwm/recipebook/LazyText.java
++++ b/src/main/java/com/robomwm/recipebook/LazyText.java
+@@ -9,7 +9,6 @@ import org.bukkit.Material;
+ import org.bukkit.inventory.ItemStack;
+ import org.bukkit.inventory.meta.BookMeta;
+ 
+-import javax.annotation.Nonnull;
+ import java.util.ArrayList;
+ import java.util.Arrays;
+ import java.util.List;
+@@ -179,7 +178,7 @@ public class LazyText
+      * @param components BaseComponents
+      * @return
+      */
+-    public static List<BaseComponent[]> buildPages(String newPageChar, @Nonnull List<BaseComponent> components)
++    public static List<BaseComponent[]> buildPages(String newPageChar, List<BaseComponent> components)
+     {
+         List<BaseComponent[]> completedPages = new ArrayList<>();
+         List<BaseComponent> workingPage = new ArrayList<>();
+diff --git a/src/main/java/com/robomwm/recipebook/RecipeBookSearchCommand.java b/src/main/java/com/robomwm/recipebook/RecipeBookSearchCommand.java
+index b0fda12..588da91 100644
+--- a/src/main/java/com/robomwm/recipebook/RecipeBookSearchCommand.java
++++ b/src/main/java/com/robomwm/recipebook/RecipeBookSearchCommand.java
+@@ -14,7 +14,6 @@ import org.bukkit.entity.Player;
+ import org.bukkit.inventory.ItemStack;
+ import org.bukkit.inventory.Recipe;
+ import org.bukkit.plugin.Plugin;
+-import pw.valaria.bookutil.BookUtil;
+ 
+ import java.util.ArrayList;
+ import java.util.Iterator;
+@@ -95,7 +94,7 @@ public class RecipeBookSearchCommand implements CommandExecutor, TabCompleter {
+             }
+         }
+ 
+-        new BookUtil(plugin).openBook(player, builder.toBook());
++        player.openBook(builder.toBook());
+ 
+         return true;
+     }
+-- 
+2.43.0
+
