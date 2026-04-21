@@ -1,0 +1,39 @@
+From bec1195e0cd176dd442002fdb4053c16851b47ce Mon Sep 17 00:00:00 2001
+From: Serbur <19244210+MLG-SERBUR@users.noreply.github.com>
+Date: Tue, 21 Apr 2026 00:55:35 +0000
+Subject: [PATCH] ci: add --no-transfer-progress to batch-mode maven commands
+
+---
+ .github/workflows/ci.yml | 2 +-
+ appveyor.yml             | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/.github/workflows/ci.yml b/.github/workflows/ci.yml
+index a5fc03a..e07fc4d 100644
+--- a/.github/workflows/ci.yml
++++ b/.github/workflows/ci.yml
+@@ -25,7 +25,7 @@ jobs:
+           distribution: 'temurin'
+ 
+       - name: Build and Test
+-        run: mvn --batch-mode clean verify
++        run: mvn --batch-mode --no-transfer-progress clean verify
+ 
+       - name: Extract Final Artifact Name from POM
+         if: github.event_name == 'release'
+diff --git a/appveyor.yml b/appveyor.yml
+index ef49019..e4c05e2 100644
+--- a/appveyor.yml
++++ b/appveyor.yml
+@@ -26,7 +26,7 @@ install:
+ build_script:
+   - mvn clean package -B -Dmaven.test.skip=true
+ test_script:
+-  - mvn clean install --batch-mode -Pqulice
++  - mvn clean install --batch-mode --no-transfer-progress -Pqulice
+ cache:
+   - C:\maven\
+   - C:\Users\appveyor\.m2
+-- 
+2.43.0
+

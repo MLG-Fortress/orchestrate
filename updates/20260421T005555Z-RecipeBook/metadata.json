@@ -1,0 +1,8 @@
+{
+  "source_repo": "MLG-Fortress/RecipeBook",
+  "source_default_branch": "master",
+  "generated_at_utc": "2026-04-21T00:55:55Z",
+  "orchestrate_branch": "agent/ci-no-transfer-progress-20260421",
+  "user_prompt": "for all repos that have ci.yaml, update the step that runs `mvn --batch-mode clean verify` to `mvn --batch-mode --no-transfer-progress clean verify`\n\nignore PopulationDensity and any archived repos",
+  "patch_dir": "updates/20260421T005555Z-RecipeBook/patches"
+}
