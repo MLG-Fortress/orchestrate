@@ -1,0 +1,60 @@
+From a1c3c95a24b7d28c9be11519580280129a9bf1d8 Mon Sep 17 00:00:00 2001
+From: Serbur <19244210+MLG-SERBUR@users.noreply.github.com>
+Date: Tue, 21 Apr 2026 01:45:09 +0000
+Subject: [PATCH] Update server API dependencies and fix build compatibility
+
+---
+ pom.xml                                                 | 6 +++---
+ src/com/reilaos/bukkit/TheThuum/shouts/HunKaalZoor.java | 4 ++--
+ 2 files changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/pom.xml b/pom.xml
+index dfea0a6..355f369 100644
+--- a/pom.xml
++++ b/pom.xml
+@@ -14,7 +14,7 @@
+     <repositories>
+         <repository>
+             <id>purpur</id>
+-            <url>https://repo.pl3x.net/</url>
++            <url>https://repo.purpurmc.org/snapshots</url>
+         </repository>
+ 
+     </repositories>
+@@ -44,9 +44,9 @@
+     <dependencies>
+         <!--Bukkit API-->
+         <dependency>
+-            <groupId>net.pl3x.purpur</groupId>
++            <groupId>org.purpurmc.purpur</groupId>
+             <artifactId>purpur-api</artifactId>
+-            <version>1.17.1-R0.1-SNAPSHOT</version>
++            <version>26.1.2.build.2570-experimental</version>
+             <scope>provided</scope>
+         </dependency>
+     </dependencies>
+diff --git a/src/com/reilaos/bukkit/TheThuum/shouts/HunKaalZoor.java b/src/com/reilaos/bukkit/TheThuum/shouts/HunKaalZoor.java
+index 900b654..77d3689 100644
+--- a/src/com/reilaos/bukkit/TheThuum/shouts/HunKaalZoor.java
++++ b/src/com/reilaos/bukkit/TheThuum/shouts/HunKaalZoor.java
+@@ -24,7 +24,7 @@ public class HunKaalZoor implements Shout {
+ 		return words;
+ 	}
+ 	
+-	private EntityType[] heroes = {EntityType.SNOWMAN, EntityType.WOLF, EntityType.IRON_GOLEM};
++	private EntityType[] heroes = {EntityType.SNOW_GOLEM, EntityType.WOLF, EntityType.IRON_GOLEM};
+ 	
+ 	@Override
+ 	public void shout(Player dovahkiin, int level) {
+@@ -36,7 +36,7 @@ public class HunKaalZoor implements Shout {
+ 			((IronGolem) hero).setPlayerCreated(true);
+ 		
+ 		
+-		hero.addPotionEffect(new PotionEffect(PotionEffectType.INCREASE_DAMAGE, 1200, 20));
++		hero.addPotionEffect(new PotionEffect(PotionEffectType.STRENGTH, 1200, 20));
+ 		spawnHere.getWorld().createExplosion(spawnHere, 0, false);
+ 		
+ 		Plugin.scheduler.scheduleSyncDelayedTask(Plugin.thisOne, new RemoveEntity(hero, true), 1200);
+-- 
+2.43.0
+
