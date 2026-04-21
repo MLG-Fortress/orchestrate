@@ -1,0 +1,25 @@
+From bbaeb2bf4acd648b12ac36b65731f670338030db Mon Sep 17 00:00:00 2001
+From: Serbur <19244210+MLG-SERBUR@users.noreply.github.com>
+Date: Tue, 21 Apr 2026 00:56:01 +0000
+Subject: [PATCH] ci: add --no-transfer-progress to batch-mode maven commands
+
+---
+ appveyor.yml | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/appveyor.yml b/appveyor.yml
+index f2286f3..f409243 100644
+--- a/appveyor.yml
++++ b/appveyor.yml
+@@ -26,7 +26,7 @@ install:
+ build_script:
+ - mvn clean package -B -Dmaven.test.skip=true
+ test_script:
+-- mvn clean install --batch-mode -Pqulice
++- mvn clean install --batch-mode --no-transfer-progress -Pqulice
+ cache:
+ - C:\maven\
+ - C:\Users\appveyor\.m2
+-- 
+2.43.0
+
