@@ -30,6 +30,55 @@ patch_id_from_file() {
   git patch-id --stable < "${patch_path}" 2>/dev/null | awk 'NR==1 {print $1}'
 }
 
+apply_patch_with_recovery() {
+  local repo_path="$1"
+  local patch_path="$2"
+  local patch_file
+  local patch_id
+
+  patch_file="$(basename "${patch_path}")"
+
+  # Ensure stale interrupted am/rebase state never blocks an apply attempt.
+  git -C "${repo_path}" am --abort >/dev/null 2>&1 || true
+  rm -rf "${repo_path}/.git/rebase-apply" "${repo_path}/.git/rebase-merge" >/dev/null 2>&1 || true
+
+  if git -C "${repo_path}" am --3way "${patch_path}"; then
+    return 0
+  fi
+
+  echo "Initial apply failed for ${patch_file}; aborting and retrying with --keep-cr."
+  git -C "${repo_path}" am --abort >/dev/null 2>&1 || true
+  rm -rf "${repo_path}/.git/rebase-apply" "${repo_path}/.git/rebase-merge" >/dev/null 2>&1 || true
+
+  if git -C "${repo_path}" am --3way --keep-cr "${patch_path}"; then
+    echo "Recovered ${patch_file} via --keep-cr."
+    return 0
+  fi
+
+  echo "Retry with --keep-cr failed for ${patch_file}; cleaning am state."
+  git -C "${repo_path}" am --abort >/dev/null 2>&1 || true
+  rm -rf "${repo_path}/.git/rebase-apply" "${repo_path}/.git/rebase-merge" >/dev/null 2>&1 || true
+
+  # If patch ended up already present (for example due to equivalent upstream
+  # changes), skip it instead of requiring manual repo intervention.
+  if git -C "${repo_path}" apply --reverse --check "${patch_path}" >/dev/null 2>&1; then
+    echo "Patch ${patch_file} already present after recovery attempts; skipping."
+    return 2
+  fi
+
+  if patch_id="$(patch_id_from_file "${patch_path}")" && [[ -n "${patch_id}" ]]; then
+    if git -C "${repo_path}" log --no-merges --pretty=format:%H -p \
+      | git patch-id --stable \
+      | awk '{print $1}' \
+      | grep -Fxq "${patch_id}"; then
+      echo "Patch ${patch_file} already present by patch-id after recovery attempts; skipping."
+      return 2
+    fi
+  fi
+
+  return 1
+}
+
 if [[ ${#REMOTE_BRANCHES[@]} -eq 0 ]]; then
   echo "No non-default remote branches found."
   exit 0
@@ -110,11 +159,15 @@ for branch in "${REMOTE_BRANCHES[@]}"; do
     for patch in "${patches[@]}"; do
       if git -C "${clone_path}" apply --check "${patch}" >/dev/null 2>&1; then
         echo "Applying $(basename "${patch}")"
-        if git -C "${clone_path}" am --3way "${patch}"; then
+        if apply_patch_with_recovery "${clone_path}" "${patch}"; then
           ((applied_count+=1))
         else
-          echo "Failed while applying $(basename "${patch}"). Aborting am session."
-          git -C "${clone_path}" am --abort >/dev/null 2>&1 || true
+          apply_status=$?
+          if [[ ${apply_status} -eq 2 ]]; then
+            ((skipped_count+=1))
+            continue
+          fi
+          echo "Failed while applying $(basename "${patch}") after recovery attempts."
           exit 1
         fi
       elif git -C "${clone_path}" apply --reverse --check "${patch}" >/dev/null 2>&1; then
