@@ -1,0 +1,8 @@
+{
+  "source_repo": "MLG-Fortress/CustomEmotes",
+  "source_default_branch": "master",
+  "generated_at_utc": "2026-04-21T01:03:51Z",
+  "orchestrate_branch": "work",
+  "user_prompt": "* `MultiGenerator`\n* `WellWorld`\n* `RecipeBook`\n* `TheTranslator`\n* `MiniTurret`\n* `CustomEmotes`\n* `GrandioseAPI`\n* `CommunicationConnector`\n* `WildWormholes`\n* `PortalEntities`\n\nupdate and fix the following repos to update to paper or purpur (depending on what the project already uses) 26.1.2. if paper, use <version>[26.1.2.build,)</version>, if purpur, use 26.1.2.build.2570-experimental since I don't think [26.1.2.build,) works properly with their repo.\nfix any maven repos that need to be updated or added and any compile errors. Make sure it compiles, if it doesn't, fix it (maven repo or code or whatever) so it does.\n\n* `MultiGenerator`\n* `WellWorld`\n* `RecipeBook`\n* `TheTranslator`\n* `MiniTurret`\n* `CustomEmotes`\n* `GrandioseAPI`\n* `CommunicationConnector`\n* `WildWormholes`\n* `PortalEntities`",
+  "patch_dir": "updates/20260421T010351Z-CustomEmotes/patches"
+}
